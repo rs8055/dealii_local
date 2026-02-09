@@ -1,0 +1,84 @@
+#!/bin/bash
+## ------------------------------------------------------------------------
+##
+## SPDX-License-Identifier: LGPL-2.1-or-later
+## Copyright (C) 2018 - 2022 by the deal.II authors
+##
+## This file is part of the deal.II library.
+##
+## Part of the source code is dual licensed under Apache-2.0 WITH
+## LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+## governing the source code and code contributions can be found in
+## LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+##
+## ------------------------------------------------------------------------
+set -eu
+
+BASE_URL="https://cdash.dealii.org"
+
+# Script to query CDash on the command line and create a formatted table
+
+links=false
+regex=".*"
+
+print_help() {
+  echo "Usage: query_testsuite [-c|--commit <commit>] [-l|--links] [-h|--help]"
+  echo ""
+  echo "Queries the CDash on the command line and creates a formatted table"
+  echo "compatible with markdown"
+  echo ""
+  echo "Options:"
+  echo "  -r (--regex)   : only show results for hosts/commits matching the specified regex"
+  echo "  -l (--links)   : include hyperlinks"
+  echo "  -h (--help)    : print this help message"
+}
+
+until [[ "$*" == "" ]]; do
+  if  [[ "$1" == -h || "$1" == --help ]]; then
+    print_help
+    exit 1
+  elif  [[ "$1" == -l || "$1" == --links ]]; then
+    links=true
+  elif  [[ "$1" == -r || "$1" == --regex ]]; then
+    shift
+    regex="$1"
+  else
+    print_help
+    exit 1
+  fi
+  shift
+done
+
+if [ -z "$(command -v jq)" ]; then
+  echo "Error: need jq executable in path"
+  echo "Please install jq (sudo apt install jq, sudo yum install jq)"
+  exit 1
+fi
+
+query_testsuite() {
+
+  echo "| Host | Configuration | Commit | Build errors | Build warnings | Failing tests | Passing tests |"
+  echo "| - | - | - | :-: | :-: | :-: | :-: |"
+
+  curl -s "${BASE_URL}/api/v1/index.php?project=deal.II" |
+    jq -r ".buildgroups | .[] | .builds | .[] | .id , .site , .buildname, .update.files, .compilation.error, .compilation.warning, .test.fail, .test.pass" |
+    paste -d ' ' - - - - - - - - |
+    sort -n |
+    if $links; then
+      awk "{ print \$2,
+        \"[\" \$3 \"](${BASE_URL}/buildSummary.php?buildid=\" \$1 \")\", \
+        \"[\" \$4 \"](${BASE_URL}/viewUpdate.php?buildid=\" \$1 \")\", \
+        \"[\" \$5 \"](${BASE_URL}/viewBuildError.php?buildid=\" \$1 \")\", \
+        \"[\" \$6 \"](${BASE_URL}/viewBuildError.php?type=1&buildid=\" \$1 \")\", \
+        \"[\" \$7 \"](${BASE_URL}/viewTest.php?onlyfailed&buildid=\" \$1 \")\", \
+        \"[\" \$8 \"](${BASE_URL}/viewTest.php?onlypassed&buildid=\" \$1 \")\"
+      }"
+    else
+      awk '{$1=""; print $0}'
+    fi |
+    sed -e 's#^ ##' -e 's# # | #g' -e 's#^#| #' -e 's#$# |#' |
+    grep -P "${regex}" |
+    cat
+}
+
+query_testsuite

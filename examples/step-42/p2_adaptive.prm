@@ -1,0 +1,6 @@
+set polynomial degree = 2
+set number of initial refinements = 2
+set number of cycles = 11
+set refinement strategy = percentage
+set obstacle = sphere
+set output directory = p2_adaptive

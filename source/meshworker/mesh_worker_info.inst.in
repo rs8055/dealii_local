@@ -1,0 +1,51 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2010 - 2018 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+    namespace MeshWorker
+    \{
+#if deal_II_dimension <= deal_II_space_dimension
+      template class IntegrationInfo<deal_II_dimension,
+                                     deal_II_space_dimension>;
+      template class IntegrationInfoBox<deal_II_dimension,
+                                        deal_II_space_dimension>;
+
+      template class DoFInfo<deal_II_dimension, deal_II_space_dimension, float>;
+      template class DoFInfoBox<
+        deal_II_dimension,
+        DoFInfo<deal_II_dimension, deal_II_space_dimension, float>>;
+
+      template void
+      IntegrationInfo<deal_II_dimension, deal_II_space_dimension>::
+        fill_local_data(
+          const DoFInfo<deal_II_dimension, deal_II_space_dimension, float> &,
+          bool);
+
+      template class DoFInfo<deal_II_dimension,
+                             deal_II_space_dimension,
+                             double>;
+      template class DoFInfoBox<
+        deal_II_dimension,
+        DoFInfo<deal_II_dimension, deal_II_space_dimension, double>>;
+
+      template void
+      IntegrationInfo<deal_II_dimension, deal_II_space_dimension>::
+        fill_local_data(
+          const DoFInfo<deal_II_dimension, deal_II_space_dimension, double> &,
+          bool);
+#endif
+    \}
+  }

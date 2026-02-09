@@ -1,0 +1,182 @@
+##                                                                       ##
+#                       Example configuration file                        #
+#                                                                         #
+#     See doc/readme.html and doc/users/cmake_dealii.html for further     #
+#     details on how to use the cmake build system of deal.II.            #
+##                                                                       ##
+
+
+###########################################################################
+#                                                                         #
+#                         General Configuration:                          #
+#                                                                         #
+###########################################################################
+
+#
+# Component configuration:
+#
+# set(DEAL_II_COMPONENT_DOCUMENTATION OFF CACHE BOOL "")
+# set(DEAL_II_COMPONENT_EXAMPLES ON CACHE BOOL "")
+# set(DEAL_II_COMPONENT_PACKAGE OFF CACHE BOOL "")
+# set(DEAL_II_COMPONENT_PYTHON_BINDINGS OFF CACHE BOOL "")
+#
+
+#
+# General Feature configuration:
+#
+# set(DEAL_II_ALLOW_BUNDLED ON CACHE BOOL "")
+# set(DEAL_II_ALLOW_AUTODETECTION ON CACHE BOOL "")
+# set(DEAL_II_FORCE_AUTODETECTION OFF CACHE BOOL "")
+#
+
+#
+# Build configuration:
+#
+# set(CMAKE_BUILD_TYPE "DebugRelease" CACHE STRING "")
+#
+# set(CMAKE_CXX_COMPILER "" CACHE STRING "")
+# set(CMAKE_C_COMPILER "" CACHE STRING "")
+# set(CMAKE_Fortran_COMPILER "" CACHE STRING "")
+# set(DEAL_II_CXX_FLAGS "" CACHE STRING "")
+# set(DEAL_II_CXX_FLAGS_DEBUG "" CACHE STRING "")
+# set(DEAL_II_CXX_FLAGS_RELEASE "" CACHE STRING "")
+# set(DEAL_II_LINKER_FLAGS "" CACHE STRING "")
+# set(DEAL_II_LINKER_FLAGS_DEBUG "" CACHE STRING "")
+# set(DEAL_II_LINKER_FLAGS_RELEASE "" CACHE STRING "")
+# set(DEAL_II_DEFINITIONS "" CACHE STRING "")
+# set(DEAL_II_DEFINITIONS_DEBUG "" CACHE STRING "")
+# set(DEAL_II_DEFINITIONS_RELEASE "" CACHE STRING "")
+#
+# set(DEAL_II_ALLOW_PLATFORM_INTROSPECTION ON CACHE BOOL "")
+# set(DEAL_II_SETUP_COVERAGE OFF CACHE BOOL "")
+# set(DEAL_II_UNITY_BUILD OFF CACHE BOOL "")
+# set(DEAL_II_EARLY_DEPRECATIONS OFF CACHE BOOL "")
+# set(BUILD_SHARED_LIBS "ON" CACHE BOOL "")
+# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH "ON" CACHE BOOL "")
+
+#
+# Miscellaneous options:
+#
+# set(DEAL_II_DOXYGEN_USE_MATHJAX "OFF" CACHE BOOL "")
+# set(DEAL_II_DOXYGEN_USE_ONLINE_MATHJAX "OFF" CACHE BOOL "")
+# set(DEAL_II_CPACK_EXTERNAL_LIBS "opt" CACHE STRING "")
+# set(DEAL_II_CPACK_BUNDLE_NAME "deal.II" CACHE STRING "")
+#
+
+
+###########################################################################
+#                                                                         #
+#                          Feature Configuration:                         #
+#                                                                         #
+###########################################################################
+
+#
+# In order to hint for custom installation paths you can
+#
+#  1/ use CMAKE_PREFIX_PATH
+#
+#     a list variable that contains installation prefixes that CMake
+#     searches first.
+#
+#     Example CMake call:
+#     $ cmake -DCMAKE_PREFIX_PATH="/path/to/library/1;/path/to/library/2" [...]
+#
+#  2/ use <FEATURE>_DIR
+#
+#     a string variable that contains installation prefixes that CMake
+#     searches first for location a given feature library.
+#
+#     Example CMake call:
+#     $ cmake -DTRILINOS_DIR="/path/to/trilinos" [...]
+#
+# It is possible to override a given feature detection entirely by
+# specifying (a subset of) the following variables on the command line:
+#
+#     DEAL_II_<FEATURE>_FOUND=true    (bool)
+#     <FEATURE>_LIBRARIES             (list)
+#
+#     <FEATURE>_LIBRARIES_DEBUG       (list)
+#     <FEATURE>_LIBRARIES_RELEASE     (list)
+#     <FEATURE>_CXX_FLAGS             (string)
+#     <FEATURE>_CXX_FLAGS_DEBUG       (string)
+#     <FEATURE>_CXX_FLAGS_RELEASE     (string)
+#     <FEATURE>_LINKER_FLAGS          (string)
+#     <FEATURE>_LINKER_FLAGS_DEBUG    (string)
+#     <FEATURE>_LINKER_FLAGS_RELEASE  (string)
+#     <FEATURE>_DEFINITIONS           (list)
+#     <FEATURE>_DEFINITIONS_DEBUG     (list)
+#     <FEATURE>_DEFINITIONS_RELEASE   (list)
+#
+
+#
+# set(DEAL_II_WITH_64BIT_INDICES "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_ADOLC "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_ARBORX "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_ARPACK "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_ASSIMP "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_BOOST "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_CGAL "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_COMPLEX_VALUES "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_GINKGO "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_GMSH "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_GSL "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_HDF5 "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_KOKKOS "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_LAPACK "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_METIS "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_MPI "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_MUPARSER "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_OPENCASCADE "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_P4EST "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_PETSC "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_SCALAPACK "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_SLEPC "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_SUNDIALS "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_SYMENGINE "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_TASKFLOW "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_TBB "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_TRILINOS "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_UMFPACK "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_VTK "ON" CACHE BOOL "")
+# set(DEAL_II_WITH_ZLIB "ON" CACHE BOOL "")
+#
+
+
+###########################################################################
+#                                                                         #
+#                         Advanced Configuration:                         #
+#                                                                         #
+###########################################################################
+
+#
+# Platform introspection:
+#
+# deal.II has some platform dependent tests and configuration options.
+# They can be enabled/disabled with DEAL_II_ALLOW_PLATFORM_INTROSPECTION
+# (see above)
+#
+# To enable support for AVX and SSE manually, set:
+#
+# set(DEAL_II_HAVE_SSE TRUE CACHE BOOL "")
+# set(DEAL_II_HAVE_AVX TRUE CACHE BOOL "")
+# set(DEAL_II_HAVE_AVX512 TRUE CACHE BOOL "")
+#
+
+#
+# Advanced configuration of paths, install locations and names:
+#
+# set(DEAL_II_PACKAGE_NAME "deal.II" CACHE STRING "")
+# set(DEAL_II_PROJECT_CONFIG_NAME "${DEAL_II_PACKAGE_NAME}" CACHE STRING "")
+#
+# set(DEAL_II_BASE_NAME "deal_II" CACHE STRING "")
+# set(DEAL_II_DEBUG_SUFFIX ".g" CACHE STRING "")
+# set(DEAL_II_RELEASE_SUFFIX "" CACHE STRING "")
+#
+# set(DEAL_II_DOCHTML_RELDIR "doc" CACHE STRING "")
+# set(DEAL_II_DOCREADME_RELDIR "" CACHE STRING "")
+# set(DEAL_II_EXAMPLES_RELDIR "examples" CACHE STRING "")
+# set(DEAL_II_EXECUTABLE_RELDIR "bin" CACHE STRING
+# set(DEAL_II_INCLUDE_RELDIR "include" CACHE STRING "")
+# set(DEAL_II_LIBRARY_RELDIR "lib" CACHE STRING "")
+# set(DEAL_II_PROJECT_CONFIG_RELDIR "lib/cmake/deal.II" CACHE STRING "")
+#

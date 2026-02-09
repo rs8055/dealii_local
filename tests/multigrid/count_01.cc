@@ -1,0 +1,120 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2006 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+// check MGTools::count_dofs_per_component
+
+#include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_raviart_thomas.h>
+#include <deal.II/fe/fe_system.h>
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+#include <deal.II/grid/tria_accessor.h>
+#include <deal.II/grid/tria_iterator.h>
+
+#include <deal.II/lac/block_vector.h>
+#include <deal.II/lac/vector.h>
+
+#include <deal.II/multigrid/mg_tools.h>
+
+#include <algorithm>
+
+#include "../tests.h"
+
+
+
+void
+log_vector(const std::vector<std::vector<types::global_dof_index>> &count)
+{
+  for (unsigned int l = 0; l < count.size(); ++l)
+    {
+      deallog << "Level " << l;
+      for (unsigned int c = 0; c < count[l].size(); ++c)
+        deallog << '\t' << count[l][c];
+      deallog << std::endl;
+    }
+}
+
+template <int dim>
+void
+check_fe(FiniteElement<dim> &fe)
+{
+  deallog << fe.get_name() << std::endl;
+
+  Triangulation<dim> tr(Triangulation<dim>::limit_level_difference_at_vertices);
+  GridGenerator::hyper_cube(tr);
+  tr.refine_global(1);
+  tr.begin_active()->set_refine_flag();
+  tr.execute_coarsening_and_refinement();
+  tr.refine_global(1);
+
+  DoFHandler<dim> mgdof(tr);
+  mgdof.distribute_dofs(fe);
+  mgdof.distribute_mg_dofs();
+
+  std::vector<std::vector<types::global_dof_index>> count(tr.n_levels());
+  MGTools::count_dofs_per_component(mgdof, count, false);
+  log_vector(count);
+  MGTools::count_dofs_per_component(mgdof, count, true);
+  log_vector(count);
+
+  std::vector<unsigned int> target(fe.n_components());
+  for (unsigned int i = 0; i < target.size(); ++i)
+    target[i] = i / 3;
+  deallog << std::endl << "Target";
+  for (unsigned int i = 0; i < target.size(); ++i)
+    deallog << '\t' << target[i];
+  deallog << std::endl;
+
+  MGTools::count_dofs_per_component(mgdof, count, false, target);
+  log_vector(count);
+  MGTools::count_dofs_per_component(mgdof, count, true, target);
+  log_vector(count);
+}
+
+
+template <int dim>
+void
+check()
+{
+  FE_Q<dim>   q1(1);
+  FE_Q<dim>   q2(2);
+  FE_DGQ<dim> dq1(1);
+
+  FESystem<dim> s1(q1, 2, q2, 1);
+
+  check_fe(s1);
+  if (dim > 1)
+    {
+      FE_RaviartThomas<dim> rt(1);
+      FESystem<dim>         s2(rt, 2, dq1, 1);
+      FESystem<dim>         s3(rt, 1, s1, 2);
+
+      check_fe(s2);
+      check_fe(s3);
+    }
+}
+
+int
+main()
+{
+  initlog();
+  deallog << std::setprecision(3);
+
+  check<1>();
+  check<2>();
+  check<3>();
+}

@@ -1,0 +1,165 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2008 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+// a redux of mesh_smoothing_01 (since deleted since it used a list of
+// refinement flags for one particular mesh that after a later fix
+// cannot be reproduced any more in exactly this way): when we have
+// patch_level_1 set, and if we have a mesh like this:
+//
+// *-*-*-*-*---*---*
+// *-*-*-*-*   |   |
+// *-*-*-*-*---*---*
+// *-*-*-*-*   *   |
+// *-*-*-*-*---*---*
+// |   |   |   |   |
+// *---*---*---*---*
+// |   |   |   |   |
+// *---*---*---*---*
+//
+// Note that this is a patch-level-1 mesh. Now, if we set coarsen flags on all
+// cells, then the result is no longer a patch-level-1
+// mesh. Triangulation::prepare_coarsen_and_refinement didn't see this coming,
+// and we violate the invariant that we hit again the next time we call this
+// function
+
+
+char logname[] = "output";
+
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+#include <deal.II/grid/tria_accessor.h>
+#include <deal.II/grid/tria_iterator.h>
+
+#include <iostream>
+
+#include "../tests.h"
+
+
+
+template <int dim>
+bool
+cell_is_patch_level_1(const typename Triangulation<dim>::cell_iterator &cell)
+{
+  Assert(cell->is_active() == false, ExcInternalError());
+
+  unsigned int n_active_children = 0;
+  for (unsigned int i = 0; i < cell->n_children(); ++i)
+    if (cell->child(i)->is_active())
+      ++n_active_children;
+
+  return (n_active_children == 0) || (n_active_children == cell->n_children());
+}
+
+
+void
+test()
+{
+  Triangulation<2> triangulation(Triangulation<2>::maximum_smoothing);
+  GridGenerator::hyper_cube(triangulation);
+  triangulation.refine_global(2);
+
+  // refine the offspring of one of the cells
+  // on level 1
+  for (unsigned int i = 0; i < 4; ++i)
+    triangulation.begin(1)->child(i)->set_refine_flag();
+  triangulation.execute_coarsening_and_refinement();
+
+  deallog << "n_active_cells = " << triangulation.n_active_cells() << std::endl;
+
+
+  for (Triangulation<2>::cell_iterator cell = triangulation.begin();
+       cell != triangulation.end();
+       ++cell)
+    {
+      deallog << "Cell = " << cell
+              << (cell->is_active() ? " is active " : " is not active ");
+      if (!cell->is_active())
+        {
+          deallog << "and has children: ";
+          for (unsigned int i = 0; i < 4; ++i)
+            deallog << cell->child(i) << ' ';
+        }
+      deallog << std::endl;
+    }
+
+  // now flag everything for coarsening
+  // again
+  for (Triangulation<2>::active_cell_iterator cell =
+         triangulation.begin_active();
+       cell != triangulation.end();
+       ++cell)
+    cell->set_coarsen_flag();
+  triangulation.execute_coarsening_and_refinement();
+
+  deallog << "n_active_cells = " << triangulation.n_active_cells() << std::endl;
+
+  for (Triangulation<2>::cell_iterator cell = triangulation.begin();
+       cell != triangulation.end();
+       ++cell)
+    {
+      AssertThrow((cell->refine_flag_set() == false) &&
+                    (cell->coarsen_flag_set() == false),
+                  ExcInternalError());
+      if (!cell->is_active())
+        AssertThrow(cell_is_patch_level_1<2>(cell), ExcInternalError());
+    }
+
+  deallog << "OK" << std::endl;
+}
+
+
+
+int
+main()
+{
+  std::ofstream logfile(logname);
+  logfile.precision(3);
+
+  deallog.attach(logfile);
+  try
+    {
+      test();
+    }
+  catch (const std::exception &exc)
+    {
+      std::cerr << std::endl
+                << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+      std::cerr << "Exception on processing: " << std::endl
+                << exc.what() << std::endl
+                << "Aborting!" << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+
+      return 1;
+    }
+  catch (...)
+    {
+      std::cerr << std::endl
+                << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+      std::cerr << "Unknown exception!" << std::endl
+                << "Aborting!" << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+      return 1;
+    }
+
+  return 0;
+}

@@ -1,0 +1,50 @@
+## ------------------------------------------------------------------------
+##
+## SPDX-License-Identifier: LGPL-2.1-or-later
+## Copyright (C) 2014 - 2020 by the deal.II authors
+##
+## This file is part of the deal.II library.
+##
+## Part of the source code is dual licensed under Apache-2.0 WITH
+## LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+## governing the source code and code contributions can be found in
+## LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+##
+## ------------------------------------------------------------------------
+
+#
+# A PERL script that modifies the default-generated 'header.html' file
+# that doxygen provides for us and customizes it for our needs.
+#
+
+
+if (m'</head>')
+{
+    print '<link rel="SHORTCUT ICON" href="deal.ico"></link>', "\n";
+    print '<script type="text/javascript" src="$relpath^custom.js"></script>', "\n";
+    print '<meta name="author" content="The deal.II Authors <authors@dealii.org>"></meta>', "\n";
+    print '<meta name="copyright" content="Copyright (C) 1998 - @DEAL_II_PACKAGE_YEAR@ by the deal.II authors"></meta>', "\n";
+    print '<meta name="deal.II-version" content="@DEAL_II_PACKAGE_VERSION@"></meta>', "\n";
+
+    # This script is run with ${perl} -pi, so it outputs every line we don't
+    # explicitly modify. Consequently, it still outputs the '</head>' tag
+    # above.
+}
+
+s/\$projectname// unless (m/<title>/);
+
+# Finally, define some extra commands for MathJax in every file. These are in an
+# undisplayed div so that the \newcommand text does not pop up and then
+# disappear while MathJax works.
+#
+# Note: If you add an entry here, also put it into ./doc/doxygen/extra.sty
+if (eof)
+{
+    print '<!--Extra macros for MathJax:-->', "\n";
+    print '<div style="display:none">', "\n";
+    print '\(\newcommand{\dealvcentcolon}{\mathrel{\mathop{:}}}\)', "\n";
+    print '\(\newcommand{\dealcoloneq}{\dealvcentcolon\mathrel{\mkern-1.2mu}=}\)', "\n";
+    print '\(\newcommand{\jump}[1]{\left[\!\left[ #1 \right]\!\right]}\)', "\n";
+    print '\(\newcommand{\average}[1]{\left\{\!\left\{ #1 \right\}\!\right\}}\)', "\n";
+    print '</div>', "\n";
+}

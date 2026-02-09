@@ -1,0 +1,64 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2015 - 2020 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+for (VEC : VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension == deal_II_space_dimension
+
+    namespace VectorTools
+    \{
+      template void
+      point_gradient(
+        const hp::MappingCollection<deal_II_dimension> &,
+        const DoFHandler<deal_II_dimension> &,
+        const VEC &,
+        const Point<deal_II_dimension> &,
+        std::vector<Tensor<1, deal_II_space_dimension, VEC::value_type>> &);
+
+      template Tensor<1, deal_II_space_dimension, VEC::value_type>
+      point_gradient(const hp::MappingCollection<deal_II_dimension> &,
+                     const DoFHandler<deal_II_dimension> &,
+                     const VEC &,
+                     const Point<deal_II_dimension> &);
+
+      template void
+      point_gradient(
+        const DoFHandler<deal_II_dimension> &,
+        const VEC &,
+        const Point<deal_II_dimension> &,
+        std::vector<Tensor<1, deal_II_space_dimension, VEC::value_type>> &);
+
+      template Tensor<1, deal_II_space_dimension, VEC::value_type>
+      point_gradient(const DoFHandler<deal_II_dimension> &,
+                     const VEC &,
+                     const Point<deal_II_dimension> &);
+
+      template void
+      point_gradient(
+        const Mapping<deal_II_dimension> &,
+        const DoFHandler<deal_II_dimension> &,
+        const VEC &,
+        const Point<deal_II_dimension> &,
+        std::vector<Tensor<1, deal_II_space_dimension, VEC::value_type>> &);
+
+      template Tensor<1, deal_II_space_dimension, VEC::value_type>
+      point_gradient(const Mapping<deal_II_dimension> &,
+                     const DoFHandler<deal_II_dimension> &,
+                     const VEC &,
+                     const Point<deal_II_dimension> &);
+
+    \}
+#endif
+  }

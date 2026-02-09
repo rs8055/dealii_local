@@ -1,0 +1,6 @@
+
+DEAL::Size 32 Unknowns 961
+DEAL::Solver type: N6dealii13PETScWrappers13SolverPreOnlyE
+DEAL::Solver stopped within 1 - 11 iterations
+DEAL::Solver type: N6dealii13PETScWrappers13SolverPreOnlyE
+DEAL::Solver stopped within 1 - 1 iterations

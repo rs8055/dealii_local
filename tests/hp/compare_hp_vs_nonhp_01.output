@@ -1,0 +1,25 @@
+
+DEAL::dim=1
+DEAL::Number of active cells: 4
+DEAL::Total number of cells: 7
+DEAL::Number of degrees of freedom: 5
+DEAL::Number of active cells: 4
+DEAL::Total number of cells: 7
+DEAL::Number of degrees of freedom: 5
+DEAL::1.2 1.2
+DEAL::dim=2
+DEAL::Number of active cells: 16
+DEAL::Total number of cells: 21
+DEAL::Number of degrees of freedom: 25
+DEAL::Number of active cells: 16
+DEAL::Total number of cells: 21
+DEAL::Number of degrees of freedom: 25
+DEAL::2.6 2.6
+DEAL::dim=3
+DEAL::Number of active cells: 64
+DEAL::Total number of cells: 73
+DEAL::Number of degrees of freedom: 125
+DEAL::Number of active cells: 64
+DEAL::Total number of cells: 73
+DEAL::Number of degrees of freedom: 125
+DEAL::5.9 5.9

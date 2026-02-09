@@ -1,0 +1,39 @@
+
+DEAL::* no subsection to leave: 
+DEAL::Exception 
+--------------------------------------------------------
+An error occurred in file <parameter_handler.cc> in function
+    void dealii::ParameterHandler::leave_subsection()
+The violated condition was: 
+    subsection_path.size() != 0
+Additional information: 
+    You can't leave a subsection if you are already at the top level of
+    the subsection hierarchy.
+--------------------------------------------------------
+
+DEAL::
+DEAL::* parse_input with missing 'end':
+DEAL::ExcUnbalancedSubsections(filename, paths_message.str())
+    There are unequal numbers of 'subsection' and 'end' statements in the parameter file <input string>.
+DEAL::
+DEAL::Exception 
+--------------------------------------------------------
+An error occurred in file <parameter_handler.cc> in function
+    void dealii::ParameterHandler::leave_subsection()
+The violated condition was: 
+    subsection_path.size() != 0
+Additional information: 
+    You can't leave a subsection if you are already at the top level of
+    the subsection hierarchy.
+--------------------------------------------------------
+
+DEAL::
+DEAL::* Check non empty path before parse_input()
+DEAL::
+DEAL::* Check parse_input() catches messing with path:
+DEAL::ExcUnbalancedSubsections(filename, paths_message.str())
+    There are unequal numbers of 'subsection' and 'end' statements in the parameter file <input string>.
+Path before loading input:
+    subsection test
+Current path:
+    subsection test2

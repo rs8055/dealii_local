@@ -1,0 +1,33 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2016 - 2018 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+for (VEC : REAL_NONBLOCK_VECTORS; deal_II_dimension : DIMENSIONS)
+  {
+    namespace VectorTools
+    \{
+
+      template void
+      project<deal_II_dimension, VEC, deal_II_dimension>(
+        const Mapping<deal_II_dimension, deal_II_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_dimension> &,
+        const AffineConstraints<VEC::value_type> &,
+        const Quadrature<deal_II_dimension> &,
+        const std::function<VEC::value_type(
+          const DoFHandler<deal_II_dimension,
+                           deal_II_dimension>::active_cell_iterator &,
+          const unsigned int)> &,
+        VEC &);
+
+    \}
+  }

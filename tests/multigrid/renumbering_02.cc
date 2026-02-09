@@ -1,0 +1,76 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2006 - 2024 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+// Until version 1.50 of mg_dof_handler.cc, the
+// DoFHandler::renumbering function could not handle coarsened grids
+// (unused cells). Check that this works now.
+
+#include <deal.II/dofs/dof_accessor.h>
+#include <deal.II/dofs/dof_renumbering.h>
+
+#include <deal.II/fe/fe_dgp.h>
+#include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_system.h>
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+#include <deal.II/lac/block_vector.h>
+#include <deal.II/lac/vector.h>
+
+#include <algorithm>
+
+#include "../tests.h"
+
+
+
+template <int dim>
+void
+check()
+{
+  FE_DGQ<dim> fe(1);
+  deallog << fe.get_name() << std::endl;
+
+  Triangulation<dim> tria(
+    Triangulation<dim>::limit_level_difference_at_vertices);
+  GridGenerator::hyper_cube(tria);
+  tria.refine_global(2);
+  typename Triangulation<dim>::active_cell_iterator cell = tria.begin_active();
+  for (unsigned int i = 0; i < GeometryInfo<dim>::max_children_per_cell;
+       ++i, ++cell)
+    cell->set_coarsen_flag();
+  tria.execute_coarsening_and_refinement();
+
+  DoFHandler<dim> mg_dof_handler(tria);
+  mg_dof_handler.distribute_dofs(fe);
+  mg_dof_handler.distribute_mg_dofs();
+  Point<dim> a;
+  a[0] = 1;
+  for (unsigned int level = 0; level < tria.n_levels(); ++level)
+    DoFRenumbering::downstream(mg_dof_handler, level, a);
+}
+
+
+int
+main()
+{
+  initlog(__FILE__);
+  check<1>();
+  check<2>();
+  check<3>();
+
+  deallog << "OK" << std::endl;
+}

@@ -1,0 +1,25 @@
+
+DEAL:parameters:First Class::First bool: true
+DEAL:parameters:First Class::First double: 7.7
+DEAL:parameters:First Class::First int: 3
+DEAL:parameters:First Class::First string: hello
+DEAL:parameters:Second Class::Second bool: false
+DEAL:parameters:Second Class::Second double: 9.9
+DEAL:parameters:Second Class::Second int: 5
+DEAL:parameters:Second Class::Second string: bye bye
+DEAL::reading used_parameter_acceptor_05.xml
+DEAL::<?xml version="1.0" encoding="utf-8"?>
+DEAL::<ParameterHandler>
+DEAL::  <First_20Class>
+DEAL::    <First_20bool>true</First_20bool>
+DEAL::    <First_20double>7.7</First_20double>
+DEAL::    <First_20int>3</First_20int>
+DEAL::    <First_20string>hello</First_20string>
+DEAL::  </First_20Class>
+DEAL::  <Second_20Class>
+DEAL::    <Second_20bool>false</Second_20bool>
+DEAL::    <Second_20double>9.9</Second_20double>
+DEAL::    <Second_20int>5</Second_20int>
+DEAL::    <Second_20string>bye bye</Second_20string>
+DEAL::  </Second_20Class>
+DEAL::</ParameterHandler>

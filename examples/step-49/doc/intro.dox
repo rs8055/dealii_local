@@ -1,0 +1,560 @@
+<i>This program was contributed by Timo Heister. Parts of the results section
+were contributed by Yuhan Zhou, Wolfgang Bangerth, David Wells, and Sean Ingimarson.</i>
+
+<a name="step_49-Intro"></a>
+<h1> Introduction </h1>
+This tutorial is an extension to step-1 and demonstrates several ways to
+obtain more involved meshes than the ones shown there.
+
+@note This tutorial is also available as a Jupyter Python notebook that
+  uses the deal.II Python interface. The notebook is available in the
+  same directory as the original C++ program.
+
+Generating complex geometries is a challenging task, especially in three space
+dimensions. We will discuss several ways to do this, but this list is not
+exhaustive. Additionally, there is not one approach that fits all problems.
+
+This example program shows some of ways to create and modify meshes for
+computations and outputs them as <code>.vtu</code> files in much the same way
+as we do in step-1. No other computations or adaptive
+refinements are done; the idea is that you can use the techniques used here as
+building blocks in other, more involved simulators. Please note that the
+example program does not show all the ways to generate meshes that are
+discussed in this introduction.
+
+
+<h3>General concerns about meshes</h3>
+
+When you use adaptive mesh refinement, you definitely want the initial mesh to
+be as coarse as possible. The reason is that you can make it as fine as you
+want using adaptive refinement as long as you have memory and CPU time
+available. However, this requires that you don't waste mesh cells in parts of
+the domain where they don't pay off. As a consequence, you don't want to start
+with a mesh that is too fine to start with, because that takes up a good part
+of your cell budget already, and because you can't coarsen away cells that are
+in the initial mesh.
+
+That said, your mesh needs to capture the given geometry adequately.
+
+
+<h3>How to create meshes</h3>
+
+There are several ways to create an initial mesh. Meshes can be modified or
+combined in many ways as discussed later on.
+
+<h4>Using GridGenerator</h4>
+
+The easiest way to generate meshes is to use the functions in namespace
+GridGenerator, as already discussed in step-1.  There are many different
+helper functions
+available, including GridGenerator::hyper_cube(),
+GridGenerator::hyper_shell(), GridGenerator::hyper_ball(),
+and GridGenerator::hyper_cube_with_cylindrical_hole().
+
+
+<h4>Constructing your own mesh programmatically</h4>
+
+If there is no good fit in the GridGenerator namespace for what you want to
+do, you can always create a
+Triangulation in your program "by hand". For that, you need a list of vertices
+with their coordinates and a list of cells referencing those vertices. You can
+find an example in the function <tt>create_coarse_grid()</tt> in step-14.
+All the functions in GridGenerator are implemented in this fashion.
+
+We are happy to accept more functions to be added to GridGenerator. So, if
+you end up writing a function that might be useful for a larger audience,
+please contribute it.
+
+
+<h4>Importing from external programs</h4>
+
+The class GridIn can read many different mesh formats from a file from
+disk. How this is done is explained in step-5 and can be seen in the function
+<code>grid_1</code> in this example, see the code below.
+
+Meshes can be generated from different tools like <a
+href="http://gmsh.info" target="_top">gmsh</a>, <a
+href="https://lagrit.lanl.gov/" target="_top">lagrit</a> and <a
+href="http://cubit.sandia.gov/" target="_top">cubit</a>. See the
+documentation of GridIn for more information.
+
+One of the issues you will
+encounter is that deal.II, at least until version 9.2, can only deal with
+meshes that only consist of quadrilaterals and hexahedra -- tetrahedral
+meshes were not supported and will likely not be supported with all
+of the features deal.II offers for quadrilateral and hexahedral
+meshes for several versions following the 9.3 release that introduced
+support for simplicial and mixed meshes first. As a consequence, let
+us not show how to work with the tetgen mesh generator that is widely used
+but can only generate tetrahedral meshes, but instead illustrate how one
+can work with %Gmsh instead.
+
+%Gmsh is the smallest and
+most quickly set up open source tool we are aware of. It can generate
+unstructured 2d quad meshes. In 3d, it can extrude 2d meshes to
+get hexahedral meshes; 3D meshing of unstructured geometry into hexahedra is
+possible, though there are some issues with the quality of these meshes
+that imply that these meshes only sometimes work in deal.II.
+
+%Gmsh has a graphical user interface, but what it does is in essence
+only to generate a text file that then drives the actual mesh generation.
+The graphical user interface does allow querying information about the
+geometry and mesh, however, and so is useful. But it is useful to
+understand the text format regardless because it allows automating the
+mesh generation workflow. These text files, with a
+<code>.geo</code> suffix, can
+contain computations, loops, variables, etc. This format is quite flexible
+in allowing the description of complex geometries. The mesh is then
+generated from a surface representation, which is built from a list of line
+loops, which is built from a list of lines, which are in turn built from
+points. The <code>.geo</code> script can be written and edited by hand or it
+can be generated automatically by creating objects graphically inside %Gmsh. In
+many cases it is best to combine both approaches. The file can be easily
+reloaded by pressing "reload" under the "Geometry" tab if you want to write
+it by hand and see the effects in the graphical user interface of gmsh.
+
+
+
+This tutorial contains an example <code>.geo</code> file that describes a box
+with two circles cut out in the interior and several slits on the sides. For the
+<code>example.geo</code> file that you can find in the `examples/step-49`
+directory, %Gmsh will show the following view (displaying the boundary
+indicators as well as the mesh are discussed further down below):
+
+<img src="https://www.dealii.org/images/steps/developer/step-49.gmsh_picture2.png" alt="">
+
+We will go through the basics of %Gmsh and show how we can obtain a mesh like this.
+
+It's also worth mentioning this video (which can be found here https://www.youtube.com/watch?v=xL2LmDsDLYw&t=921s)
+which does a good job of explaining how to use gmsh to create basic shapes and meshes.
+Let us first go through the documented <code>example.geo</code> file that describes the geometry.
+
+We will now go through the main parts of <code>example.geo</code> file that defines the mesh.
+
+<h5>Point declaration</h5>
+
+In this section we create the points that make up the domain.
+
+The points can either be typed in the `.geo` file manually or
+found via <code>Geometry -> Elementary Entities -> Add ->
+%Point</code> where you simply enter the coordinates in the prompt or use the mouse
+to place them. The latter approach yields a list of the following kind:
+
+@code
+Point(1) = {-3.5, -3.36, 0, 1.0};
+Point(2) = {3.5, -3.36, 0, 1.0};
+Point(3) = {3.5, 3.36, 0, 1.0};
+Point(4) = {-3.5, 3.36, 0, 1.0};
+Point(5) = {-3.5, 0.2, 0, 1.0};
+Point(6) = {-0.98 - b, 0.2, 0, 1.0};
+...
+@endcode
+
+It is relevant to note that all points in %Gmsh are three-dimensional objects.
+Since we here want to generate a two-dimensional mesh, the points simply have
+a zero $z$ coordinate. The fourth number in the curly braces for each
+point (equal to 1.0 for all of the points above) indicates the desired mesh
+size in the vicinity of this point. %Gmsh's graphical user interfaces writes
+this into the `.geo` file automatically, but it can be omitted and one
+would probably do that if one were to write this file by hand.
+
+The file contains many more points than just these six. If you look into
+the file, you will also realize that one does not have to enumerate points
+consecutively: One can number them in whichever way one wants, which
+is often useful when constructing complex geometries. In such cases, one
+might for example want to number all points for one particular part of the
+geometry starting at zero, and the points for another part at, say, 1000.
+It does not matter whether all numbers between zero and 1000 are used.
+
+
+<h5>Lines on outer domain</h5>
+
+To create lines of the mesh, go to <code>Geometry -> Elementary
+entities -> Add -> Line</code>.  You do not get a prompt to enter in
+specific coordinates, rather you simply click a starting point and
+ending point for each line.
+
+The generated code in the geo file then looks like this:
+
+@code
+Line(4) = {4, 5};
+Line(5) = {5, 6};
+Line(6) = {6, 7};
+Line(7) = {7, 8};
+Line(8) = {8, 9};
+...
+@endcode
+
+What appears on the right are pairs of point indices that define a line.
+As before, the indices of the lines (here 4 to 8) need not be consecutive.
+
+
+<h5>Creating holes in domain</h5>
+
+Here are the points and lines that create the two holes in the domain.
+We start by defining the relevant points for bottom left hole:
+
+@code
+Point(31) = {-2.1, -1.54, 0, 1.0}; // origin
+Point(32) = {-2.1, -0.84, 0, 1.0}; // top point
+Point(33) = {-2.1, -2.24, 0, 1.0}; // bottom point
+Point(103) = {-1.4, -1.54, 0, 1.0}; // right point
+Point(104) = {-2.8, -1.54, 0, 1.0}; // left point
+@endcode
+
+Then we use the <code>Circle arc</code> entity, which is found in the same category as
+<code>%Point</code> and <code>Lines</code>.  The file reads "Circle"
+but the difference to note is that this function uses three points to
+make an arc of a circle, namely the starting point, center, and ending point. The
+angle of an arc is required to be less than 180 degrees. We therefore split the circle
+into four arcs, which also allows us to set different boundary IDs.
+This then looks as follows
+where point 31 is the common center for all arcs:
+
+@code
+Circle(48) = {103, 31, 32};
+Circle(49) = {32, 31, 104};
+Circle(50) = {104, 31, 33};
+Circle(51) = {33, 31, 103};
+@endcode
+
+We follow the same procedure for the second circle.
+
+
+<h5>Plane surfaces</h5>
+
+This section describes the "Plane Surfaces", i.e., the 2D surfaces for meshing.
+This can be found in <code>Elementary entities</code> as <code>Plane Surface</code>.
+The purpose of this entity is to specify the domain in 2D.  Because we have our
+mesh split into 4 sections, we must have 4 plane surfaces.
+
+To make a plane surface, simply click <code>Plane surface</code> and click on all
+the relevant borders for the mesh.  This includes holes or other objects contained
+in the mesh.  Again, since we have 4 different meshes, we will do this 4 times.
+
+The code below is for the top right mesh.  Notice we have 2 instances of
+<code>Curve Loop</code>, which are constructed from lists of the
+line segments we have previously built from pairs of two points.
+The first of the curve loops is the outer boundary of the part of the domain
+we are describing, whereas the second one is for the hole.
+This can easily be traced back by following along with the numbers in the braces.
+
+@code
+Curve Loop(1) = {40, -43, 10, 57, 59, 60, 58};
+Curve Loop(2) = {12, 13, 14, 15};
+Plane Surface(1) = {1, 2};
+@endcode
+
+In the description of the first curve loop above, the second line segment (segment
+43) is described with a negative sign. This is because we have not paid enough
+attention when creating the line segment and have specified its two vertices in the
+wrong order:
+@code
+Line(14) = {7, 14};
+...
+Line(40) = {3, 36};
+...
+Line(43) = {7, 36};
+@endcode
+The negative sign then ensures that it is considered in the correct
+orientation, with an order for vertices of `3 -> 36 -> 7 -> 14`.
+
+The other four surfaces are declared in a similar way.
+
+Next we define the physical surface itself.  This line is what makes our mesh 2D.
+The values in the braces on the right hand side are the tags for the `Plane Surface`s
+we declared above.  The number in the parentheses of physical surfaces will become the
+material ID of the mesh as well.  For more information about material IDs, check the
+glossary entry
+@ref GlossMaterialId "material indicators" .
+
+@code
+Physical Surface(2) = {1, 2, 3, 4};
+@endcode
+
+
+<h5>Physical IDs</h5>
+
+The steps above would be enough to define a two dimensional geometry that can be meshed.
+In practice, however, one often needs to attach additional information to parts of
+the geometry. The prototypical example are
+@ref GlossBoundaryIndicator "boundary indicators"
+and
+@ref GlossMaterialId "material indicators" .
+
+To do this, we need to tell %Gmsh about all of the "physical entities" and assign
+them with indices. For example, the physical surface above has been assigned
+index 2, and so this index "2" will be output as a tag for the cells that make
+up the surface (i.e., *all* cells of this mesh) and deal.II will then interpret
+tags on cells as material ids.
+
+@code
+Physical Curve(0) = {38, 39, 52:57, 59, 60, 58, 40, 41, 4:9};
+@endcode
+The indices in the list on the right correspond to line segments, with a
+colon "`:`" denoting a range.
+
+
+We then assign boundary ID of 1 to the top right circle, where the index 12
+corresponds to the circle (a different kind of line segment):
+@code
+Physical Curve(1) = {12};
+@endcode
+
+Finally, we assign boundary IDs of 2 and 3 to the top and bottom half of the bottom left
+hole, respectively.  We can see here that we needed to pick two boundaries
+to make both of the physical curves.  Recall this circle is comprised of
+four circle arcs, so Physical Curve(2) is the top left and top right quarter
+of the circle, and Physical Curve(3) is the bottom left and bottom right quarter
+of the circle.
+
+@code
+Physical Curve(2) = {48, 49};
+Physical Curve(3) = {50, 51};
+@endcode
+
+
+@note It is important that the `.geo` file contains some "physical lines" and "physical
+  surfaces", not just for the purposes of material and boundary ids: Without
+  physical lines and surfaces (and volumes in 3d), there is only a collection of
+  geometric objects, but no "domain" that %Gmsh can actually define a mesh on.
+
+
+
+<h5>Meshing Parameters</h5>
+
+Finally, the `.geo` file contains meshing parameters that can all be adjusted in the GMSH GUI.  We include
+these parameters at the bottom of our `.geo` file to keep the changes when creating our
+mesh (with suffix <code>.msh</code>) file.
+
+@code
+Mesh.Algorithm = 3;
+Mesh.RecombineAll = 1;
+Mesh.CharacteristicLengthFactor = .6;
+Mesh.SubdivisionAlgorithm = 1;
+Mesh.Smoothing = 20;
+Show "*";
+@endcode
+
+To view what each of these do, press <code>Tools -> Options -> Mesh</code>.
+
+You may change the algorithm used for meshing in <code>2D algorithm</code>.
+
+<code>CharacteristicLengthFactor</code> can be thought of the distance between
+nodes on the boundaries of the mesh.  This sets the initial size of the nodes
+of the mesh.  If we want a finer mesh we want a smaller characteristic length.
+For this examples purposes we would like to do more refinement in deal.II so
+we pick a relatively coarse mesh.  This can also be adjusted in the Options
+menu.
+
+<code>SubdivisionAlgorithm</code> is set to 1 in our file because we want to
+use "All Quads" for subdivision.  In the options menu the default is "None",
+but we use "All Quads" for the reasons mentioned earlier.
+
+<code>Smoothing</code> is a post-processing step that iteratively improves
+mesh quality (for example by moving inner vertices). The number of steps is
+not crucial in this example. For our example we pick 20, however this value can be adjusted
+accordingly as it's not the most important step in mesh building.
+
+
+
+@note That ends the code for <code>example.geo</code>.  It's important to note that
+  the <code>.geo</code> file did not come out as organized as it appears here.  It
+  was edited after creating the mesh and geometry to be more readable.
+
+Before loading this into deal.II, we need to create the <code>.msh</code>
+file.  If everything was set up correctly, we can press <code>Mesh -> 2D</code>.
+If all this goes well, then we
+should see something similar to the following output:
+
+<img src="https://www.dealii.org/images/steps/developer/step-49.gmsh_picture_2Dmesh.png" alt="">
+
+It behooves us at this point to also make sure our boundaries were declared
+correctly.  So in the Options menu go to <code>Mesh -> Visibility</code>.
+In the dropdown menu labeled "Label type" we may choose a label for our boundaries.
+We wish to check physical IDs, so we would like to have "Physical tag" picked.
+Now we check "1D element labels" and we should see the numbers assigned to the
+specified boundaries.
+
+<img src="https://www.dealii.org/images/steps/developer/step-49.gmsh_picture_2Dmesh_ids.png" alt="">
+
+Finally, we can choose  <code>Mesh -> Save</code> to save the <code>.msh</code> file, which
+deal.II's GridIn class can read. You can also generate the <code>.msh</code> from the
+<code>.geo</code> file by running the command
+
+@code
+gmsh -2 example.geo
+@endcode
+
+@note %Gmsh has a number of other interfaces by which one can describe
+  geometries to it. In particular, it has the ability to interface with
+  scripting languages like Python and Julia, but it can also be scripted
+  from C++. These interfaces are useful if one doesn't just want to generate
+  a mesh for a single geometry (in which case the graphical interface or,
+  in simple cases, a hand-written `.geo` file is probably the simplest
+  approach), but instead wants to do parametric studies over the geometry
+  for which it is necessary to generate many meshes for geometries that
+  differ in certain parameters. Another case where this is useful is if there
+  is already a CAD geometry for which one only needs a mesh; indeed, this
+  can be done from within deal.II using the
+  Gmsh::create_triangulation_from_boundary_curve() function.
+
+
+<h3>Modifying a Mesh</h3>
+
+After acquiring one (or several) meshes in the ways described above, there are
+many ways to manipulate them before using them in a finite element
+computation.
+
+
+<h4>Transformations</h4>
+
+The GridTools namespace contains a collection of small functions to transform
+a given mesh in various ways. The usage of the functions GridTools::shift,
+GridTools::rotate, GridTools::scale is fairly obvious, so we won't discuss
+those functions here.
+
+The function GridTools::transform allows you to transform the vertices of a
+given mesh using a smooth function. An example of its use is also given in the
+results section of step-38 but let us show a simpler example here:
+In the function <code>grid_5()</code> of the current program, we perturb the y
+coordinate of a mesh with a sine curve:
+
+<table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-5a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-5.png" alt=""> output mesh
+    </td>
+  </tr>
+</table>
+
+Similarly, we can transform a regularly refined
+unit square to a wall-adapted mesh in y direction using the formula
+$(x,y) \mapsto (x,\tanh(2 y)/\tanh(2))$. This is done in <code>grid_6()</code>
+of this tutorial:
+<table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-6a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-6.png" alt=""> wall-adapted output mesh
+    </td>
+  </tr>
+</table>
+
+Finally, the function GridTools::distort_random allows you to move vertices in the
+mesh (optionally ignoring boundary nodes) by a random amount. This is
+demonstrated in <code>grid_7()</code> and the result is as follows:
+
+<table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-7a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-7.png" alt=""> perturbed output mesh
+    </td>
+  </tr>
+</table>
+
+This function is primarily intended to negate some of the superconvergence
+effects one gets when studying convergence on regular meshes, as well as to
+suppress some optimizations in deal.II that can exploit the fact that cells
+are similar in shape. (Superconvergence refers to the fact that if a mesh
+has certain symmetries -- for example, if the edges running into a vertex
+are symmetric to this vertex, and if this is so for all vertices of a cell
+-- that the solution is then often convergent with a higher order than one
+would have expected from the usual error analysis. In the end, this
+is a result of the fact that if one were to make a Taylor expansion of the
+error, the symmetry leads to the fact that the expected next term of the
+expansion happens to be zero, and the error order is determined by the
+*second next* term. A distorted mesh does not have these symmetries and
+consequently the error reflects what one will see when solving the equation
+on *any* kind of mesh, rather than showing something that is only reflective
+of a particular situation.)
+
+
+<h4>Merging Meshes</h4>
+
+The function GridGenerator::merge_triangulations() allows you to merge two
+given Triangulation objects into a single one.  For this to work, the vertices
+of the shared edge or face have to match exactly.  Lining up the two meshes
+can be achieved using GridTools::shift and GridTools::scale.  In the function
+<code>grid_2()</code> of this tutorial, we merge a square with a round hole
+(generated with GridGenerator::hyper_cube_with_cylindrical_hole()) and a
+rectangle (generated with GridGenerator::subdivided_hyper_rectangle()). The
+function GridGenerator::subdivided_hyper_rectangle() allows you to specify the
+number of repetitions and the positions of the corners, so there is no need to
+shift the triangulation manually here. You should inspect the mesh graphically
+to make sure that cells line up correctly and no unpaired nodes exist in the
+merged Triangulation.
+
+These are the input meshes and the output mesh:
+
+<table width="80%" align="center">
+  <tr>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2a.png" alt="" height="200px">input mesh 1</td>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2b.png" alt="" height="200px">input mesh 2</td>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2.png" alt="" height="200px">merged mesh</td>
+  </tr>
+</table>
+
+
+<h4>Moving Vertices</h4>
+
+The function <code>grid_3()</code> demonstrates the ability to pick individual vertices and
+move them around in an existing mesh. Note that this has the potential to produce degenerate
+or inverted cells and you shouldn't expect anything useful to come of using
+such meshes. Here, we create a box with a cylindrical hole that is not exactly
+centered by moving the top vertices upwards:
+
+<table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-3a.png" alt="" height="200px"> input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-3.png" alt="" height="200px"> top vertices moved upwards
+    </td>
+  </tr>
+</table>
+
+For the exact way how this is done, see the code below.
+
+
+<h4>Extruding Meshes</h4>
+
+If you need a 3d mesh that can be created by extruding a given 2d mesh (that
+can be created in any of the ways given above), you can use the function
+GridGenerator::extrude_triangulation(). See the <code>grid_4()</code> function
+in this tutorial for an example. Note that for this particular case, the given
+result could also be achieved using the 3d version of
+GridGenerator::hyper_cube_with_cylindrical_hole(). The main usage is a 2d
+mesh, generated for example with %Gmsh, that is read in from a
+<code>.msh</code> file as described above. This is the output from grid_4():
+
+<table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-49.grid-4base.png" alt=""> input mesh
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-49.grid-4.png" alt=""> extruded output mesh
+    </td>
+  </tr>
+</table>
+
+
+<h3> After you have a coarse mesh </h3>
+
+Creating a coarse mesh using the methods discussed above is only the first
+step. When you have it, it will typically serve as the basis for further mesh
+refinement. This is not difficult &mdash; in fact, there is nothing else to do
+&mdash; if your geometry consists of only straight faces. However, this is
+often not the case if you have a more complex geometry and more steps than
+just creating the mesh are necessary. We will go over some of these steps in
+the @ref step_49-Results "results section" below.

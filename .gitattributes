@@ -1,0 +1,41 @@
+#
+# do not include the following files in tarballs created via git-export:
+#
+
+.clang-format export-ignore
+.clang-tidy export-ignore
+.codecov.yml export-ignore
+/contrib/ci/ export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+Jenkinsfile export-ignore
+.mailmap export-ignore
+.travis.yml export-ignore
+
+/.github/ export-ignore
+
+# exclude most of the testsuite from the tarball:
+/tests/* export-ignore
+# but keep everything to run the "make test" target (quick_tests, examples):
+/tests/CMakeLists.txt -export-ignore
+/tests/examples -export-ignore
+/tests/quick_tests -export-ignore
+/tests/run_*.cmake -export-ignore
+/tests/scripts -export-ignore
+/tests/tests.h -export-ignore
+
+#
+# MSVC compatiblity
+#
+
+/cmake/scripts/run_test.sh text eol=lf
+/tests/**/*.output* text eol=lf
+
+#
+# Declare a number of filter attributes
+#
+
+tests/**/*.output filter=test-output
+bundled/**/* filter=bundled-files
+bundled/CMakeLists.txt -filter=bundled-files
+bundled/setup_bundled.cmake -filter=bundled-files

@@ -1,0 +1,163 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+#ifndef DOXYGEN
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template class FEValuesBase<deal_II_dimension, deal_II_space_dimension>;
+#  endif
+  }
+
+for (S : REAL_AND_COMPLEX_SCALARS; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      CellIteratorWrapper::get_interpolated_dof_values<S>(const ReadVector<S> &,
+                                                          Vector<S> &) const;
+#  endif
+  }
+
+for (S : REAL_AND_COMPLEX_SCALARS; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_values<S>(const ReadVector<S> &, std::vector<S> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_values<S>(const ReadVector<S> &,
+                             const ArrayView<const types::global_dof_index> &,
+                             std::vector<S> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_values<S>(const ReadVector<S> &, std::vector<Vector<S>> &)
+        const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_values<S>(const ReadVector<S> &,
+                             const ArrayView<const types::global_dof_index> &,
+                             std::vector<Vector<S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_values<S>(const ReadVector<S> &,
+                             const ArrayView<const types::global_dof_index> &,
+                             ArrayView<std::vector<S>>,
+                             bool) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_gradients<S>(
+        const ReadVector<S> &,
+        std::vector<dealii::Tensor<1, deal_II_space_dimension, S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_gradients<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<dealii::Tensor<1, deal_II_space_dimension, S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_gradients<S>(
+        const ReadVector<S> &,
+        std::vector<std::vector<dealii::Tensor<1, deal_II_space_dimension, S>>>
+          &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_gradients<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        ArrayView<std::vector<dealii::Tensor<1, deal_II_space_dimension, S>>>,
+        bool) const;
+#  endif
+  }
+
+for (S : REAL_AND_COMPLEX_SCALARS; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_hessians<S>(
+        const ReadVector<S> &,
+        std::vector<dealii::Tensor<2, deal_II_space_dimension, S>> &) const;
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_hessians<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<dealii::Tensor<2, deal_II_space_dimension, S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_hessians<S>(
+        const ReadVector<S> &,
+        std::vector<std::vector<dealii::Tensor<2, deal_II_space_dimension, S>>>
+          &,
+        bool) const;
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_hessians<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        ArrayView<std::vector<dealii::Tensor<2, deal_II_space_dimension, S>>>,
+        bool) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_laplacians<S>(const ReadVector<S> &, std::vector<S> &) const;
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_laplacians<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<S> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_laplacians<S>(const ReadVector<S> &,
+                                 std::vector<Vector<S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_laplacians<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<Vector<S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_laplacians<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<std::vector<S>> &,
+        bool) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_third_derivatives<S>(
+        const ReadVector<S> &,
+        std::vector<dealii::Tensor<3, deal_II_space_dimension, S>> &) const;
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_third_derivatives<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        std::vector<dealii::Tensor<3, deal_II_space_dimension, S>> &) const;
+
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_third_derivatives<S>(
+        const ReadVector<S> &,
+        std::vector<std::vector<dealii::Tensor<3, deal_II_space_dimension, S>>>
+          &,
+        bool) const;
+    template void FEValuesBase<deal_II_dimension, deal_II_space_dimension>::
+      get_function_third_derivatives<S>(
+        const ReadVector<S> &,
+        const ArrayView<const types::global_dof_index> &,
+        ArrayView<std::vector<dealii::Tensor<3, deal_II_space_dimension, S>>>,
+        bool) const;
+#  endif
+  }
+#endif

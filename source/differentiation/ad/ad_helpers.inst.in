@@ -1,0 +1,70 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2019 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+// TODO: Include complex types
+
+for (number : REAL_SCALARS)
+  {
+    namespace Differentiation
+    \{
+      namespace AD
+      \{
+        // -------------------------- HelperBase ----------------------
+
+        template class HelperBase<NumberTypes::none, number>;
+
+        // -------------------------- CellLevelBase ----------------------
+
+        template class CellLevelBase<NumberTypes::none, number>;
+
+        // -------------------------- EnergyFunctional ----------------------
+
+        template class EnergyFunctional<NumberTypes::none, number>;
+
+        // ------------------------ ResidualLinearization --------------------
+
+        template class ResidualLinearization<NumberTypes::none, number>;
+
+      \}
+    \}
+  }
+
+
+for (deal_II_dimension : DIMENSIONS; number : REAL_SCALARS)
+  {
+    namespace Differentiation
+    \{
+      namespace AD
+      \{
+        // ----------------------- PointLevelFunctionsBase -------------------
+
+        template class PointLevelFunctionsBase<deal_II_dimension,
+                                               NumberTypes::none,
+                                               number>;
+
+        // -------------------------- ScalarFunction ----------------------
+
+        template class ScalarFunction<deal_II_dimension,
+                                      NumberTypes::none,
+                                      number>;
+
+        // -------------------------- VectorFunction ----------------------
+
+        template class VectorFunction<deal_II_dimension,
+                                      NumberTypes::none,
+                                      number>;
+
+      \}
+    \}
+  }

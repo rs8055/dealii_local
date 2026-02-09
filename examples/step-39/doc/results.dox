@@ -1,0 +1,80 @@
+<h1>Results</h1>
+
+<h3>Logfile output</h3>
+First, the program produces the usual logfile here stored in <tt>deallog</tt>. It reads (with omission of intermediate steps)
+
+@code
+Element: FE_DGQ<2>(3)
+Step 0
+Triangulation 16 cells, 2 levels
+DoFHandler 256 dofs, level dofs 64 256
+Assemble matrix
+Assemble multilevel matrix
+Assemble right hand side
+Solve
+Converged in 13 iterations
+energy-error: 0.297419
+L2-error:     0.00452447
+Estimate 0.990460
+Writing solution to <sol-00.gnuplot>...
+
+Step 1
+Triangulation 25 cells, 3 levels
+DoFHandler 400 dofs, level dofs 64 256 192
+Assemble matrix
+Assemble multilevel matrix
+Assemble right hand side
+Solve
+Converged in 14 iterations
+energy-error: 0.258559
+L2-error:     0.00288510
+Estimate 0.738624
+Writing solution to <sol-01.gnuplot>...
+
+...
+
+Step 10
+Triangulation 232 cells, 11 levels
+DoFHandler 3712 dofs, level dofs 64 256 896 768 768 640 512 256 256 256 256
+Assemble matrix
+Assemble multilevel matrix
+Assemble right hand side
+Solve
+Converged in 15 iterations
+energy-error: 0.0132475
+L2-error:     1.00423e-05
+Estimate 0.0470724
+Writing solution to <sol-10.gnuplot>...
+
+Step 11
+Triangulation 322 cells, 12 levels
+DoFHandler 5152 dofs, level dofs 64 256 1024 1024 896 768 768 640 448 320 320 320
+Assemble matrix
+Assemble multilevel matrix
+Assemble right hand side
+Solve
+Converged in 15 iterations
+energy-error: 0.00934891
+L2-error:     5.41095e-06
+Estimate 0.0329102
+Writing solution to <sol-11.gnuplot>...
+@endcode
+
+This log for instance shows that the number of conjugate gradient
+iteration steps is constant at approximately 15.
+
+
+<h3>Postprocessing of the logfile</h3>
+
+<img src="https://www.dealii.org/images/steps/developer/step-39-convergence.svg" alt="">
+Using the perl script <tt>postprocess.pl</tt>, we extract relevant
+data into <tt>output.dat</tt>, which can be used to plot graphs with
+<tt>gnuplot</tt>. The graph above for instance was produced using the gnuplot
+script <tt>plot_errors.gpl</tt> via
+
+@code
+./step-39 | perl postprocess.pl >output.dat
+gnuplot plot_errors.gpl
+@endcode
+
+Reference data can be found in <tt>output.reference.dat</tt>.

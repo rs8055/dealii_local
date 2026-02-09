@@ -1,0 +1,17 @@
+
+DEAL::Cycle 0:
+DEAL::   Number of active cells:       160
+DEAL::   Number of degrees of freedom: 337
+DEAL::Cycle 1:
+DEAL::   Number of active cells:       208
+DEAL::   Number of degrees of freedom: 465
+DEAL::Cycle 2:
+DEAL::   Number of active cells:       400
+DEAL::   Number of degrees of freedom: 945
+DEAL::Cycle 3:
+DEAL::   Number of active cells:       904
+DEAL::   Number of degrees of freedom: 2161
+DEAL::Cycle 4:
+DEAL::   Number of active cells:       2536
+DEAL::   Number of degrees of freedom: 5793
+DEAL::OK

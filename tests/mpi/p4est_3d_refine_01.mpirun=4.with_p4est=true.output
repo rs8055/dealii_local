@@ -1,0 +1,21 @@
+
+DEAL:0:3d::hyper_cube
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 22
+DEAL:0:3d::Checksum: 2519335187
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 85
+DEAL:0:3d::Checksum: 3146384512
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 337
+DEAL:0:3d::Checksum: 955797508
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 1205
+DEAL:0:3d::Checksum: 2892294291
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 4439
+DEAL:0:3d::Checksum: 3964838363
+DEAL:0:3d::refine_loop...
+DEAL:0:3d::#cells = 15583
+DEAL:0:3d::Checksum: 2982623556
+DEAL:0:3d::OK

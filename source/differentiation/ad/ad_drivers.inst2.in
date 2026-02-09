@@ -1,0 +1,82 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2019 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+// TODO: Include complex types
+
+for (number : REAL_SCALARS)
+{
+  namespace Differentiation
+  \{
+  namespace AD
+  \{
+
+    // -------------------------- Types ----------------------
+
+    template
+    struct Types<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad_dfad>::ad_type>;
+
+    template
+    struct Types<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad>::ad_type>;
+
+    template
+    struct Types<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad>::ad_type>;
+
+    template
+    struct Types<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad_dfad>::ad_type>;
+    
+    // -------------------------- Numbers ----------------------
+
+    template
+    struct Numbers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad_dfad>::ad_type>;
+
+    template
+    struct Numbers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad>::ad_type>;
+
+    template
+    struct Numbers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad>::ad_type>;
+
+    template
+    struct Numbers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad_dfad>::ad_type>;
+
+    // -------------------------- TapedDrivers ----------------------
+
+    template
+    struct TapedDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad_dfad>::ad_type,number>;
+
+    template
+    struct TapedDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad>::ad_type,number>;
+
+    template
+    struct TapedDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad>::ad_type,number>;
+
+    template
+    struct TapedDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad_dfad>::ad_type,number>;
+
+    // -------------------------- TapelessDrivers ----------------------
+
+    template
+    struct TapelessDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad_dfad>::ad_type,number>;
+
+    template
+    struct TapelessDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_dfad>::ad_type,number>;
+
+    template
+    struct TapelessDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad>::ad_type,number>;
+
+    template
+    struct TapelessDrivers<typename Differentiation::AD::NumberTraits<number,NumberTypes::sacado_rad_dfad>::ad_type,number>;
+
+  \}
+  \}
+}

@@ -1,0 +1,13 @@
+
+DEAL::FE_Q_DG0<1>(QUnknownNodes(1))  vector 0
+DEAL::FE_Q_DG0<1>(QUnknownNodes(2))  vector 0
+DEAL::FE_Q_DG0<1>(QUnknownNodes(3))  vector 0
+DEAL::FE_Q_DG0<2>(1)  vector 0
+DEAL::FE_Q_DG0<2>(2)  vector 0
+DEAL::FE_Q_DG0<2>(3)  vector 0
+DEAL::FE_Q_DG0<2>(2)  vector 0
+DEAL::FE_Q_DG0<2>(3)  vector 0
+DEAL::FE_Q_DG0<2>(3)  vector 0
+DEAL::FE_Q_DG0<3>(1)  vector 0
+DEAL::FE_Q_DG0<3>(2)  vector 0
+DEAL::FE_Q_DG0<3>(3)  vector 0

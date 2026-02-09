@@ -1,0 +1,64 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2013 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+for (S : REAL_AND_COMPLEX_SCALARS; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    namespace VectorTools
+    \{
+      template S
+      compute_mean_value(
+        const Mapping<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const Quadrature<deal_II_dimension> &,
+        const ReadVector<S> &,
+        const unsigned int);
+
+      template S
+      compute_mean_value(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const Quadrature<deal_II_dimension> &,
+        const ReadVector<S> &,
+        const unsigned int);
+    \}
+#endif
+  }
+
+for (VEC : VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    namespace VectorTools
+    \{
+      template void
+      add_constant(VEC &solution,
+                   const DoFHandler<deal_II_dimension, deal_II_space_dimension>
+                                                 &dof_handler,
+                   const unsigned int             component,
+                   const typename VEC::value_type constant_adjustment);
+    \}
+#endif
+  }
+
+
+
+for (VEC : VECTOR_TYPES)
+  {
+    namespace VectorTools
+    \{
+      template void
+      subtract_mean_value(VEC &, const std::vector<bool> &);
+    \}
+  }

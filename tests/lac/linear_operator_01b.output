@@ -1,0 +1,15 @@
+
+DEAL::Normal and inverse multiplication operations
+DEAL::x4a==x4b : 1
+DEAL::Single packaged operation
+DEAL::x5==x6a : 1
+DEAL::x5==x6b : 1
+DEAL::Manual operations
+DEAL::x5a==x6a : 1
+DEAL::x5b==x6b_1 : 1
+DEAL::x5c==x6c_1 : 1
+DEAL::x5d==x6d_1 : 1
+DEAL::x5b==x6b_2 : 1
+DEAL::x5c==x6c_2 : 1
+DEAL::x5d==x6d_2 : 1
+DEAL::OK

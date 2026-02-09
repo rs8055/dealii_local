@@ -1,0 +1,157 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2013 - 2024 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+for (VEC : VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    namespace VectorTools
+    \{
+
+      template void
+      interpolate(
+        const hp::MappingCollection<deal_II_dimension, deal_II_space_dimension>
+          &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const Function<deal_II_space_dimension, VEC::value_type> &,
+        VEC &,
+        const ComponentMask &,
+        const unsigned int);
+
+      template void
+      interpolate(
+        const Mapping<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const Function<deal_II_space_dimension, VEC::value_type> &,
+        VEC &,
+        const ComponentMask &,
+        const unsigned int);
+
+      template void
+      interpolate(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const Function<deal_II_space_dimension, VEC::value_type> &,
+        VEC &,
+        const ComponentMask &,
+        const unsigned int);
+
+      template void
+      interpolate(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const FullMatrix<double> &,
+        const VEC &,
+        VEC &);
+
+      template void
+      get_position_vector(
+        const Mapping<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        VEC &,
+        const ComponentMask &);
+
+      template void
+      get_position_vector(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        VEC &,
+        const ComponentMask &);
+
+    \}
+#endif
+  }
+
+
+
+// TODO[SP]: replace <deal_II_dimension> by <deal_II_dimension,
+// deal_II_space_dimension>
+// where applicable and move to codimension cases above also when applicable
+for (VEC : VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension == deal_II_space_dimension
+
+    namespace VectorTools
+    \{
+      template void
+      interpolate_based_on_material_id(
+        const Mapping<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const std::map<
+          types::material_id,
+          const Function<deal_II_space_dimension, VEC::value_type> *> &,
+        VEC &,
+        const ComponentMask &);
+    \}
+#endif
+  }
+
+
+for (VEC : VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    namespace VectorTools
+    \{
+      template void
+      interpolate_to_different_mesh(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        VEC &);
+
+      template void
+      interpolate_to_different_mesh(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const AffineConstraints<VEC::value_type> &,
+        VEC &);
+
+      template void
+      interpolate_to_different_mesh(
+        const InterGridMap<
+          DoFHandler<deal_II_dimension, deal_II_space_dimension>> &,
+        const VEC &,
+        const AffineConstraints<VEC::value_type> &,
+        VEC &);
+    \}
+#endif
+  }
+
+for (VEC : REAL_VECTOR_TYPES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension == deal_II_space_dimension
+    namespace VectorTools
+    \{
+      template void
+      interpolate_to_coarser_mesh(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const AffineConstraints<VEC::value_type> &,
+        VEC &);
+
+      template void
+      interpolate_to_finer_mesh(
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const AffineConstraints<VEC::value_type> &,
+        VEC &);
+    \}
+#endif
+  }

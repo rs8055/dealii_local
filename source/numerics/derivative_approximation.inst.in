@@ -1,0 +1,137 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2010 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+for (deal_II_dimension : DIMENSIONS; VEC : REAL_VECTOR_TYPES)
+  {
+    namespace DerivativeApproximation
+    \{
+      template void
+      approximate_gradient<deal_II_dimension>(
+        const Mapping<deal_II_dimension>    &mapping,
+        const DoFHandler<deal_II_dimension> &dof_handler,
+        const VEC                           &solution,
+        Vector<float>                       &derivative_norm,
+        const unsigned int                   component);
+
+      template void
+      approximate_gradient<deal_II_dimension>(
+        const DoFHandler<deal_II_dimension> &dof_handler,
+        const VEC                           &solution,
+        Vector<float>                       &derivative_norm,
+        const unsigned int                   component);
+
+      template void
+      approximate_second_derivative<deal_II_dimension>(
+        const Mapping<deal_II_dimension>    &mapping,
+        const DoFHandler<deal_II_dimension> &dof_handler,
+        const VEC                           &solution,
+        Vector<float>                       &derivative_norm,
+        const unsigned int                   component);
+
+      template void
+      approximate_second_derivative<deal_II_dimension>(
+        const DoFHandler<deal_II_dimension> &dof_handler,
+        const VEC                           &solution,
+        Vector<float>                       &derivative_norm,
+        const unsigned int                   component);
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    1>(
+        const Mapping<deal_II_dimension>                          &mapping,
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<1, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    2>(
+        const Mapping<deal_II_dimension>                          &mapping,
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<2, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    3>(
+        const Mapping<deal_II_dimension>                          &mapping,
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<3, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    1>(
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<1, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    2>(
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<2, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+      template void
+      approximate_derivative_tensor<deal_II_dimension,
+                                    deal_II_dimension,
+                                    VEC,
+                                    3>(
+        const DoFHandler<deal_II_dimension>                       &dof_handler,
+        const VEC                                                 &solution,
+        const DoFHandler<deal_II_dimension>::active_cell_iterator &cell,
+        Tensor<3, deal_II_dimension>                              &derivative,
+        const unsigned int                                         component);
+
+    \}
+  }
+
+
+for (deal_II_dimension : DIMENSIONS)
+  {
+    namespace DerivativeApproximation
+    \{
+      template double
+      derivative_norm(const Tensor<1, deal_II_dimension> &derivative);
+
+      template double
+      derivative_norm(const Tensor<2, deal_II_dimension> &derivative);
+
+      template double
+      derivative_norm(const Tensor<3, deal_II_dimension> &derivative);
+    \}
+  }

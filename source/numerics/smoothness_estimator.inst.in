@@ -1,0 +1,78 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2020 - 2021 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS;
+     VEC : REAL_VECTOR_TYPES)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    template void SmoothnessEstimator::Legendre::
+      coefficient_decay<deal_II_dimension, deal_II_space_dimension, VEC>(
+        FESeries::Legendre<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        Vector<float> &,
+        const VectorTools::NormType,
+        const double,
+        const bool);
+    template void
+    SmoothnessEstimator::Legendre::coefficient_decay_per_direction<
+      deal_II_dimension,
+      deal_II_space_dimension,
+      VEC>(FESeries::Legendre<deal_II_dimension, deal_II_space_dimension> &,
+           const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+           const VEC &,
+           Vector<float> &,
+           const ComponentMask &,
+           const double,
+           const bool);
+
+    template void SmoothnessEstimator::Fourier::
+      coefficient_decay<deal_II_dimension, deal_II_space_dimension, VEC>(
+        FESeries::Fourier<deal_II_dimension, deal_II_space_dimension> &,
+        const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+        const VEC &,
+        Vector<float> &,
+        const VectorTools::NormType,
+        const double,
+        const bool);
+    template void SmoothnessEstimator::Fourier::coefficient_decay_per_direction<
+      deal_II_dimension,
+      deal_II_space_dimension,
+      VEC>(FESeries::Fourier<deal_II_dimension, deal_II_space_dimension> &,
+           const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+           const VEC &,
+           Vector<float> &,
+           const ComponentMask &,
+           const double,
+           const bool);
+#endif
+  }
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    template FESeries::Legendre<deal_II_dimension, deal_II_space_dimension>
+    SmoothnessEstimator::Legendre::default_fe_series<deal_II_dimension,
+                                                     deal_II_space_dimension>(
+      const hp::FECollection<deal_II_dimension, deal_II_space_dimension> &,
+      const unsigned int);
+
+    template FESeries::Fourier<deal_II_dimension, deal_II_space_dimension>
+    SmoothnessEstimator::Fourier::default_fe_series<deal_II_dimension,
+                                                    deal_II_space_dimension>(
+      const hp::FECollection<deal_II_dimension, deal_II_space_dimension> &,
+      const unsigned int);
+#endif
+  }

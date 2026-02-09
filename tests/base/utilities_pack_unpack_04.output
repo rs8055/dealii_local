@@ -1,0 +1,7 @@
+
+DEAL::Buffer size check: OK
+DEAL::memcmp check: OK
+DEAL::direct cmp: OK
+DEAL::Buffer size check: Failed
+DEAL::direct cmp: OK
+DEAL::OK!

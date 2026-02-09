@@ -1,0 +1,110 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2012 - 2022 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+// this function tests whether the compression of constraint weights
+// (constraint pool) works properly
+
+#include <deal.II/base/function.h>
+#include <deal.II/base/utilities.h>
+
+#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/dofs/dof_tools.h>
+
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/mapping_q1.h>
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+#include <deal.II/lac/affine_constraints.h>
+
+#include <deal.II/matrix_free/matrix_free.h>
+
+#include <deal.II/numerics/vector_tools.h>
+
+#include "../tests.h"
+
+#include "create_mesh.h"
+
+
+
+template <int dim>
+void
+test()
+{
+  Triangulation<dim> tria;
+  create_mesh(tria);
+  tria.begin_active()->set_refine_flag();
+  tria.execute_coarsening_and_refinement();
+  typename Triangulation<dim>::active_cell_iterator cell, endc;
+  cell = tria.begin_active();
+  endc = tria.end();
+  for (; cell != endc; ++cell)
+    if (cell->center().norm() < 0.5)
+      cell->set_refine_flag();
+  tria.execute_coarsening_and_refinement();
+  tria.begin(tria.n_levels() - 1)->set_refine_flag();
+  tria.last()->set_refine_flag();
+  tria.execute_coarsening_and_refinement();
+  tria.refine_global(1);
+  for (unsigned int i = 0; i < 10 - 3 * dim; ++i)
+    {
+      cell                 = tria.begin_active();
+      endc                 = tria.end();
+      unsigned int counter = 0;
+      for (; cell != endc; ++cell, ++counter)
+        if (counter % (7 - i) == 0)
+          cell->set_refine_flag();
+      tria.execute_coarsening_and_refinement();
+    }
+
+  FE_Q<dim>       fe(2);
+  DoFHandler<dim> dof(tria);
+  dof.distribute_dofs(fe);
+  AffineConstraints<double> constraints;
+  DoFTools::make_hanging_node_constraints(dof, constraints);
+  VectorTools::interpolate_boundary_values(dof,
+                                           0,
+                                           Functions::ZeroFunction<dim>(),
+                                           constraints);
+  constraints.close();
+
+  const QGauss<1> quad(2);
+  MatrixFree<dim> mf;
+  mf.reinit(MappingQ1<dim>{}, dof, constraints, quad);
+
+  deallog << "Number of hanging nodes: " << constraints.n_constraints()
+          << std::endl;
+  deallog << "Number of different constraint weights: "
+          << mf.n_constraint_pool_entries() << std::endl;
+}
+
+
+int
+main()
+{
+  initlog();
+
+  deallog << std::setprecision(3);
+
+  {
+    deallog.push("2d");
+    test<2>();
+    deallog.pop();
+    deallog.push("3d");
+    test<3>();
+    deallog.pop();
+  }
+}

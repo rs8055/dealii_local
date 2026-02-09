@@ -1,0 +1,23 @@
+%  ------------------------------------------------------------------------
+%
+%  SPDX-License-Identifier: LGPL-2.1-or-later
+%  Copyright (C) 2019 - 2020 by the deal.II authors
+%
+%  This file is part of the deal.II library.
+%
+%  Part of the source code is dual licensed under Apache-2.0 WITH
+%  LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+%  governing the source code and code contributions can be found in
+%  LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+%
+%  ------------------------------------------------------------------------
+
+% export dealcoloneq (this file is used when generating the formulas as images
+% in the doxygen HTML output (without mathjax).
+
+% Note: If you add an entry here, also put it into
+% ./doc/doxygen/scripts/mod_header.pl.in
+\newcommand{\dealvcentcolon}{\mathrel{\mathop{:}}}
+\newcommand{\dealcoloneq}{\dealvcentcolon\mathrel{\mkern-1.2mu}=}
+\newcommand{\jump}[1]{\left[\!\left[ #1 \right]\!\right]}
+\newcommand{\average}[1]{\left\{\!\left\{ #1 \right\}\!\right\}}

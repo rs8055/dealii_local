@@ -1,0 +1,34 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2022 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+for (dim : DIMENSIONS; spacedim : SPACE_DIMENSIONS; cgal_kernel : CGAL_KERNELS)
+  {
+#if dim <= spacedim
+    template void
+    dealii_cell_to_cgal_surface_mesh<typename cgal_kernel::Point_3,
+                                     dim,
+                                     spacedim>(
+      const typename Triangulation<dim, spacedim>::cell_iterator &cell,
+      const Mapping<dim, spacedim>                               &mapping,
+      CGAL::Surface_mesh<typename cgal_kernel::Point_3>          &mesh);
+
+    template void dealii_tria_to_cgal_surface_mesh<
+      typename cgal_kernel::Point_3,
+      dim,
+      spacedim>(const Triangulation<dim, spacedim>                &cell,
+                CGAL::Surface_mesh<typename cgal_kernel::Point_3> &mesh);
+#endif
+  }

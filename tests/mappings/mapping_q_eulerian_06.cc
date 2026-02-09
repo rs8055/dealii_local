@@ -1,0 +1,88 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2008 - 2020 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+// computes points in real space for 1D Eulerian mapping where middle points
+// are moved
+
+#include "../tests.h"
+
+// all include files you need here
+
+#include <deal.II/base/quadrature_lib.h>
+
+#include <deal.II/dofs/dof_handler.h>
+
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/mapping_q_eulerian.h>
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/grid_in.h>
+#include <deal.II/grid/grid_out.h>
+#include <deal.II/grid/tria.h>
+
+#include <string>
+
+void
+test(unsigned int degree)
+{
+  const unsigned int           dim      = 1;
+  const unsigned int           spacedim = 1;
+  Triangulation<dim, spacedim> tria;
+  GridGenerator::hyper_cube(tria, 0, 1);
+  FE_Q<dim, spacedim> fe(QIterated<1>(QTrapezoid<1>(), degree));
+
+  DoFHandler<dim, spacedim> shift_dh(tria);
+
+  shift_dh.distribute_dofs(fe);
+
+  // Shift just the interior points but not the boundary points
+  Vector<double> shift(shift_dh.n_dofs());
+  for (unsigned int i = 2; i <= degree; ++i)
+    shift(i) = 0.1;
+
+  QGauss<dim>                                     quad(degree + 1);
+  MappingQEulerian<dim, Vector<double>, spacedim> mapping(degree,
+                                                          shift_dh,
+                                                          shift);
+
+  Triangulation<dim, spacedim>::active_cell_iterator cell = tria.begin_active(),
+                                                     endc = tria.end();
+  Point<spacedim> real;
+  Point<dim>      unit;
+  double          eps = 1e-10;
+  for (; cell != endc; ++cell)
+    {
+      deallog << cell << std::endl;
+      for (unsigned int q = 0; q < quad.size(); ++q)
+        {
+          real = mapping.transform_unit_to_real_cell(cell, quad.point(q));
+          unit = mapping.transform_real_to_unit_cell(cell, real);
+          deallog << quad.point(q) << " -> " << real << std::endl;
+          if ((unit - quad.point(q)).norm() > eps)
+            deallog << quad.point(q) << " != " << unit << std::endl;
+        }
+    }
+}
+
+int
+main()
+{
+  initlog();
+
+  test(1);
+  test(2);
+  test(3);
+}

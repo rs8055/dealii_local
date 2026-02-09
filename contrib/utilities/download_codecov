@@ -1,0 +1,38 @@
+#!/bin/bash
+## ------------------------------------------------------------------------
+##
+## SPDX-License-Identifier: LGPL-2.1-or-later
+## Copyright (C) 2018 by the deal.II authors
+##
+## This file is part of the deal.II library.
+##
+## Part of the source code is dual licensed under Apache-2.0 WITH
+## LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+## governing the source code and code contributions can be found in
+## LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+##
+## ------------------------------------------------------------------------
+
+#
+# This script downloads the global coverage report uploader for Codecov.
+# If you are running the testsuite to create coverage information and
+# the codecov uploader is present, there is also a report uploaded to
+# https://codecov.io/gh/dealii/dealii.
+#
+
+PRG="$(cd "$(dirname "$0")" && pwd)/programs"
+CODECOV_PATH="${PRG}/codecov"
+
+if [ ! -d "$PRG" ]
+then
+    echo "create folder $PRG"
+    mkdir "$PRG"
+fi
+
+# codecov
+if [ ! -d "$CODECOV_PATH" ]
+then
+    echo "Downloading codecov-bash."
+    mkdir "$CODECOV_PATH"
+    curl -s "https://codecov.io/bash" > $CODECOV_PATH/codecov-bash.sh
+fi

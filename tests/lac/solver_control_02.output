@@ -1,0 +1,7 @@
+
+DEAL::Size 32 Unknowns 961
+DEAL:Rel tol::Success. Solver stopped after 50 iterations
+DEAL:Abs tol::Success. Solver stopped after 43 iterations
+DEAL:Iterations::Failure. Solver stopped after 20 iterations
+DEAL:Avg reduction::Success. Solver stopped after 43 iterations
+DEAL:Avg reduction::0.782586

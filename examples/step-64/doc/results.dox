@@ -1,0 +1,43 @@
+<h1>Results</h1>
+
+Since the main purpose of this tutorial is to demonstrate how to use the
+Portable::MatrixFree interface, not to compute anything useful in
+itself, we just show the expected output here:
+@code
+Cycle 0
+   Number of active cells:       8
+   Number of degrees of freedom: 343
+  Solved in 10 iterations.
+  solution norm: 0.0205439
+
+Cycle 1
+   Number of active cells:       64
+   Number of degrees of freedom: 2197
+  Solved in 14 iterations.
+  solution norm: 0.0205269
+
+Cycle 2
+   Number of active cells:       512
+   Number of degrees of freedom: 15625
+  Solved in 29 iterations.
+  solution norm: 0.0205261
+
+Cycle 3
+   Number of active cells:       4096
+   Number of degrees of freedom: 117649
+  Solved in 58 iterations.
+  solution norm: 0.0205261
+@endcode
+
+One can make two observations here: First, the norm of the numerical solution
+converges, presumably to the norm of the exact (but unknown)
+solution. And second, the number of iterations keep increasing with
+each refinement of the mesh since we are only using a preconditioner based on
+the diagonal of the operator.
+
+
+<a name="step-64-extensions"></a>
+<h3> Possibilities for extensions </h3>
+
+One could extend the tutorial to use multigrid with Chebyshev
+smoothers similar to step-37.

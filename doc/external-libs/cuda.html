@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	  "https://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>The deal.II Readme on interfacing to CUDA</title>
+    <link href="../screen.css" rel="StyleSheet">
+    <meta name="copyright" content="Copyright (C) 2017 - 2023 by the deal.II authors">
+    <meta name="keywords" content="deal.II">
+  </head>
+
+  <body>
+
+    <h1>Installing deal.II with CUDA</h1>
+
+    <p>
+      To compile and run CUDA code, you need to use an external Kokkos
+      installation that has been configured with CUDA support.
+      Note that deal.II requires a compiler that is compatible with the
+      backends enabled in Kokkos. In particular, you need to explicitly set `CMAKE_CXX_COMPILER` to either Kokkos'
+      <code>nvcc_wrapper</code> or <code>clang++</code> when enabling the
+      Cuda backend.
+    </p>
+
+    <p>
+      Several MPI implementations are able to perform MPI operations with data
+      located in device memory directly without the need to copy to CPU memory
+      explicitly first. This feature is commonly known as "CUDA-aware MPI".
+      In case deal.II is compiled with MPI support and the MPI implementation
+      supports this feature, you can tell deal.II to use it by configuring with
+      <pre>
+
+        -DDEAL_II_WITH_MPI=ON
+        -DDEAL_II_MPI_WITH_DEVICE_SUPPORT=ON
+      </pre>
+      Note, that there is no check that detects if the MPI implementation
+      really is CUDA-aware. Activating this flag for incompatible MPI libraries
+      will lead to segmentation faults in MPI calls.
+    </p>
+
+    <p>
+      Using CUDA in combination with architecture-specific C++ compiler flags
+      like <code>-march=native</code> is known to be fragile and there might be
+      compatibility issues with other libraries, e.g. using CUDA 10.1 with
+      <code>-DDEAL_II_WITH_TBB=ON</code> and
+      <code>-DDEAL_II_CXX_FLAGS=-march=native</code> results in compile time
+      errors like:
+      <pre>
+
+        /usr/lib/gcc/x86_64-linux-gnu/7/include/avx512fintrin.h(11265): error: identifier "__builtin_ia32_scalefsd_round" is undefined
+        /usr/lib/gcc/x86_64-linux-gnu/7/include/avx512fintrin.h(11274): error: identifier "__builtin_ia32_scalefss_round" is undefined
+      </pre>
+      Since vectorization in VectorizedArray is disabled when compiling with
+      CUDA support anyway, it is recommended to drop the compile flag in that
+      case.
+    </p>
+
+  </body>
+</html>

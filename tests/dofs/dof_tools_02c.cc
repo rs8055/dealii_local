@@ -1,0 +1,101 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2003 - 2022 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+#include <deal.II/lac/block_sparsity_pattern.h>
+
+#include "../tests.h"
+
+#include "dof_tools_common.h"
+
+// check
+//   DoFTools::
+//   make_sparsity_pattern (const DoFHandler<dim> &,
+//                          Table<2,Coupling> &,
+//                      BlockSparsityPattern  &);
+
+
+
+template <int dim>
+void
+check_this(const DoFHandler<dim> &dof_handler)
+{
+  // set up X-shape mask
+  const unsigned int n_components = dof_handler.get_fe().n_components();
+  Table<2, DoFTools::Coupling> mask(n_components, n_components);
+  for (unsigned int i = 0; i < n_components; ++i)
+    for (unsigned int j = 0; j < n_components; ++j)
+      mask(i, j) = DoFTools::none;
+  for (unsigned int i = 0; i < n_components; ++i)
+    mask[i][i] = mask[i][n_components - i - 1] = DoFTools::always;
+
+  // we split up the matrix into
+  // blocks according to the number
+  // of dofs in each component. this
+  // fails if the element is not
+  // primitive, so skip this test for
+  // such elements
+  if (dof_handler.get_fe().is_primitive() != true)
+    return;
+
+  // create sparsity pattern
+  BlockSparsityPattern                       sp(n_components, n_components);
+  const std::vector<types::global_dof_index> dofs_per_component =
+    DoFTools::count_dofs_per_fe_component(dof_handler);
+  for (unsigned int i = 0; i < n_components; ++i)
+    for (unsigned int j = 0; j < n_components; ++j)
+      sp.block(i, j).reinit(dofs_per_component[i],
+                            dofs_per_component[j],
+                            dof_handler.max_couplings_between_dofs());
+  sp.collect_sizes();
+
+  DoFTools::make_sparsity_pattern(dof_handler, mask, sp);
+  sp.compress();
+
+  // write out 20 lines of this
+  // pattern (if we write out the
+  // whole pattern, the output file
+  // would be in the range of 40 MB)
+  for (unsigned int l = 0; l < 20; ++l)
+    {
+      const unsigned int                    line = l * (sp.n_rows() / 20);
+      std::pair<unsigned int, unsigned int> block_row =
+        sp.get_row_indices().global_to_local(line);
+      for (unsigned int col = 0; col < n_components; ++col)
+        {
+          for (unsigned int c = 0;
+               c < sp.block(block_row.first, col).row_length(block_row.second);
+               ++c)
+            deallog << sp.block(block_row.first, col)
+                         .column_number(block_row.second, c)
+                    << ' ';
+          deallog << std::endl;
+        }
+    }
+
+  // write out some other indicators
+  for (unsigned int r = 0; r < n_components; ++r)
+    for (unsigned int c = 0; c < n_components; ++c)
+      {
+        const SparsityPattern &x = sp.block(r, c);
+        deallog << x.bandwidth() << std::endl
+                << x.max_entries_per_row() << std::endl
+                << x.n_nonzero_elements() << std::endl;
+
+        unsigned int hash = 0;
+        for (unsigned int l = 0; l < x.n_rows(); ++l)
+          hash += l * x.row_length(l);
+        deallog << hash << std::endl;
+      }
+}

@@ -1,0 +1,67 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2021 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+// check Utilities::MPI::logical_or() for vectors
+//
+// std::vector<bool> does not necessarily store elements in contiguous array,
+// use std::vector<char> instead
+
+#include <deal.II/base/mpi.templates.h>
+#include <deal.II/base/utilities.h>
+
+#include "../tests.h"
+
+void
+test()
+{
+  const unsigned int myid = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+  std::vector<char> values = {0, (myid % 2) == 0};
+  std::vector<char> results(2);
+  Utilities::MPI::logical_or(values, MPI_COMM_WORLD, results);
+  Assert(results[0] == false, ExcInternalError());
+  Assert(results[1] == true, ExcInternalError());
+
+  if (myid == 0)
+    deallog << std::boolalpha << static_cast<bool>(results[0]) << ' '
+            << static_cast<bool>(results[1]) << std::endl;
+}
+
+
+int
+main(int argc, char *argv[])
+{
+#ifdef DEAL_II_WITH_MPI
+  Utilities::MPI::MPI_InitFinalize mpi_initialization(
+    argc, argv, testing_max_num_threads());
+#else
+  (void)argc;
+  (void)argv;
+  compile_time_error;
+
+#endif
+
+  if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
+    {
+      initlog();
+
+      deallog.push("mpi");
+      test();
+      deallog.pop();
+    }
+  else
+    test();
+}

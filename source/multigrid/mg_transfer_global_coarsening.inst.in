@@ -1,0 +1,69 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2020 - 2024 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+for (S1 : REAL_SCALARS)
+  {
+    template class MGTwoLevelTransferBase<
+      LinearAlgebra::distributed::Vector<S1, ::dealii::MemorySpace::Host>>;
+  }
+
+for (deal_II_dimension : DIMENSIONS; S1 : REAL_SCALARS)
+  {
+    template class MGTwoLevelTransfer<deal_II_dimension,
+                                      LinearAlgebra::distributed::Vector<S1>>;
+    template class MGTwoLevelTransferNonNested<
+      deal_II_dimension,
+      LinearAlgebra::distributed::Vector<S1>>;
+
+    template class MGTransferBlockMatrixFreeBase<
+      deal_II_dimension,
+      S1,
+      MGTransferMF<deal_II_dimension, S1, ::dealii::MemorySpace::Host>>;
+    template class MGTransferBlockMF<deal_II_dimension, S1>;
+
+    template class MGTransferMF<deal_II_dimension,
+                                S1,
+                                ::dealii::MemorySpace::Host>;
+  }
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    template std::vector<std::shared_ptr<
+      const Triangulation<deal_II_dimension, deal_II_space_dimension>>>
+    MGTransferGlobalCoarseningTools::create_geometric_coarsening_sequence(
+      const Triangulation<deal_II_dimension, deal_II_space_dimension>
+        &fine_triangulation_in);
+
+    template std::vector<std::shared_ptr<
+      const Triangulation<deal_II_dimension, deal_II_space_dimension>>>
+    MGTransferGlobalCoarseningTools::create_geometric_coarsening_sequence(
+      Triangulation<deal_II_dimension, deal_II_space_dimension> &
+        fine_triangulation_in,
+      const RepartitioningPolicyTools::Base<deal_II_dimension,
+                                            deal_II_space_dimension> &policy,
+      const bool keep_fine_triangulation,
+      const bool repartition_fine_triangulation);
+
+    template std::vector<std::shared_ptr<
+      const Triangulation<deal_II_dimension, deal_II_space_dimension>>>
+    MGTransferGlobalCoarseningTools::create_geometric_coarsening_sequence(
+      const Triangulation<deal_II_dimension, deal_II_space_dimension>
+        &fine_triangulation_in,
+      const RepartitioningPolicyTools::Base<deal_II_dimension,
+                                            deal_II_space_dimension> &policy,
+      const bool repartition_fine_triangulation);
+#endif
+  }

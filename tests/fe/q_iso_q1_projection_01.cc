@@ -1,0 +1,35 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2006 - 2018 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+/*
+ * Project the function [1,1] onto a deformed grid and see whether the
+ * FESystem elements can represent it exactly. This shouldn't be a surprise,
+ * but it is nice to compare with the RT and ABF elements
+ */
+
+
+
+char logname[] = "output";
+#include <deal.II/fe/fe_q_iso_q1.h>
+
+#include "deformed_projection.h"
+
+void
+test()
+{
+  FESystem<2>                       fe(FE_Q_iso_Q1<2>(3), 2);
+  const std::array<unsigned int, 3> min_convergence_steps = {{13, 13, 13}};
+  check(fe, min_convergence_steps);
+}

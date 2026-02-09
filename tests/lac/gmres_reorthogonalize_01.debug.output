@@ -1,0 +1,16 @@
+
+DEAL:double:0::Solver stopped within 56 - 58 iterations
+Re-orthogonalization enabled at step 65
+DEAL:double:1::Solver stopped within 64 - 66 iterations
+DEAL:double:2::Solver stopped within 56 - 58 iterations
+Re-orthogonalization enabled at step 65
+DEAL:double:3::Solver stopped within 64 - 66 iterations
+DEAL:double:4::Solver stopped within 56 - 58 iterations
+Re-orthogonalization enabled at step 65
+DEAL:double:5::Solver stopped within 64 - 66 iterations
+DEAL:float:0::Solver stopped within 36 - 38 iterations
+Re-orthogonalization enabled at step 65
+DEAL:float:1::Solver stopped within 64 - 66 iterations
+DEAL:float:2::Solver stopped within 36 - 38 iterations
+Re-orthogonalization enabled at step 65
+DEAL:float:3::Solver stopped within 64 - 66 iterations

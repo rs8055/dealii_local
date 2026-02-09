@@ -1,0 +1,6 @@
+
+DEAL::Size 37 Unknowns 1296
+DEAL:cg::MySolverControl 0
+DEAL:Bicgstab::MySolverControl 0
+DEAL:GMRES::MySolverControl 0
+DEAL:FGMRES::MySolverControl 0

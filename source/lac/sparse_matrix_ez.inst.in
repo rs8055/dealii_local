@@ -1,0 +1,47 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2007 - 2018 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+for (S : REAL_SCALARS)
+  {
+    template class SparseMatrixEZ<S>;
+  }
+
+
+for (S1, S2 : REAL_SCALARS)
+  {
+    template void SparseMatrixEZ<S1>::vmult<S2>(Vector<S2> &,
+                                                const Vector<S2> &) const;
+    template void SparseMatrixEZ<S1>::Tvmult<S2>(Vector<S2> &,
+                                                 const Vector<S2> &) const;
+    template void SparseMatrixEZ<S1>::vmult_add<S2>(Vector<S2> &,
+                                                    const Vector<S2> &) const;
+    template void SparseMatrixEZ<S1>::Tvmult_add<S2>(Vector<S2> &,
+                                                     const Vector<S2> &) const;
+
+    template void SparseMatrixEZ<S1>::precondition_SSOR<S2>(
+      Vector<S2> &,
+      const Vector<S2> &,
+      const S1,
+      const std::vector<std::size_t> &) const;
+    template void SparseMatrixEZ<S1>::precondition_SOR<S2>(Vector<S2> &,
+                                                           const Vector<S2> &,
+                                                           const S1) const;
+    template void SparseMatrixEZ<S1>::precondition_TSOR<S2>(Vector<S2> &,
+                                                            const Vector<S2> &,
+                                                            const S1) const;
+    template void SparseMatrixEZ<S1>::precondition_Jacobi<S2>(
+      Vector<S2> &, const Vector<S2> &, const S1) const;
+  }

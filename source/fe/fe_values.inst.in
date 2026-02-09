@@ -1,0 +1,78 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2008 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+#ifndef DOXYGEN
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template class FEValues<deal_II_dimension, deal_II_space_dimension>;
+
+    template class FEFaceValuesBase<deal_II_dimension, deal_II_space_dimension>;
+    template class FEFaceValues<deal_II_dimension, deal_II_space_dimension>;
+    template class FESubfaceValues<deal_II_dimension, deal_II_space_dimension>;
+
+    namespace internal
+    \{
+      namespace FEValuesImplementation
+      \{
+        template class FiniteElementRelatedData<deal_II_dimension,
+                                                deal_II_space_dimension>;
+      \}
+    \}
+#  endif
+  }
+
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS;
+     lda : BOOL)
+  {
+#  if deal_II_dimension <= deal_II_space_dimension
+    template void FEValues<deal_II_dimension, deal_II_space_dimension>::reinit(
+      const TriaIterator<
+        DoFCellAccessor<deal_II_dimension, deal_II_space_dimension, lda>> &);
+    template void
+    FEFaceValues<deal_II_dimension, deal_II_space_dimension>::reinit(
+      const TriaIterator<
+        DoFCellAccessor<deal_II_dimension, deal_II_space_dimension, lda>> &,
+      unsigned int);
+
+    template void
+    FEFaceValues<deal_II_dimension, deal_II_space_dimension>::reinit(
+      const TriaIterator<
+        DoFCellAccessor<deal_II_dimension, deal_II_space_dimension, lda>> &,
+      const TriaIterator<TriaAccessor<deal_II_dimension - 1,
+                                      deal_II_dimension,
+                                      deal_II_space_dimension>> &);
+
+    template void
+    FESubfaceValues<deal_II_dimension, deal_II_space_dimension>::reinit(
+      const TriaIterator<
+        DoFCellAccessor<deal_II_dimension, deal_II_space_dimension, lda>> &,
+      const unsigned int,
+      const unsigned int);
+
+    template void
+    FESubfaceValues<deal_II_dimension, deal_II_space_dimension>::reinit(
+      const TriaIterator<
+        DoFCellAccessor<deal_II_dimension, deal_II_space_dimension, lda>> &,
+      const TriaIterator<TriaAccessor<deal_II_dimension - 1,
+                                      deal_II_dimension,
+                                      deal_II_space_dimension>> &,
+      const TriaIterator<TriaAccessor<deal_II_dimension - 1,
+                                      deal_II_dimension,
+                                      deal_II_space_dimension>> &);
+#  endif
+  }
+#endif

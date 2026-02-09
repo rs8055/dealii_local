@@ -1,0 +1,71 @@
+
+DEAL::Size 33 Unknowns 1024
+DEAL::Block size 4
+DEAL::Size 256
+DEAL:Jacobi::Failure step 10 value 27.53
+DEAL:Jacobi::Failure step 10 value 27.53
+DEAL:Jacobi::diff 0
+DEAL:Jacobi::Failure step 10 value 27.53
+DEAL:Jacobi::diff 0
+DEAL:SOR   ::Failure step 10 value 24.60
+DEAL:SOR   ::Failure step 10 value 24.60
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 24.60
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 24.60
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 24.60
+DEAL:SOR   ::diff 0
+DEAL:SSOR  ::Failure step 10 value 21.41
+DEAL:SSOR  ::Failure step 10 value 21.41
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 21.41
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 21.41
+DEAL:SSOR  ::diff 0
+DEAL::Block size 8
+DEAL::Size 128
+DEAL:Jacobi::Failure step 10 value 26.69
+DEAL:Jacobi::Failure step 10 value 26.69
+DEAL:Jacobi::diff 0
+DEAL:Jacobi::Failure step 10 value 26.69
+DEAL:Jacobi::diff 0
+DEAL:SOR   ::Failure step 10 value 23.66
+DEAL:SOR   ::Failure step 10 value 23.66
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 23.66
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 23.66
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 23.66
+DEAL:SOR   ::diff 0
+DEAL:SSOR  ::Failure step 10 value 19.22
+DEAL:SSOR  ::Failure step 10 value 19.22
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 19.22
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 19.22
+DEAL:SSOR  ::diff 0
+DEAL::Block size 16
+DEAL::Size 64
+DEAL:Jacobi::Failure step 10 value 25.76
+DEAL:Jacobi::Failure step 10 value 25.76
+DEAL:Jacobi::diff 0
+DEAL:Jacobi::Failure step 10 value 25.76
+DEAL:Jacobi::diff 0
+DEAL:SOR   ::Failure step 10 value 22.95
+DEAL:SOR   ::Failure step 10 value 22.95
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 22.95
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 22.95
+DEAL:SOR   ::diff 0
+DEAL:SOR   ::Failure step 10 value 22.95
+DEAL:SOR   ::diff 0
+DEAL:SSOR  ::Failure step 10 value 17.41
+DEAL:SSOR  ::Failure step 10 value 17.41
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 17.41
+DEAL:SSOR  ::diff 0
+DEAL:SSOR  ::Failure step 10 value 17.41
+DEAL:SSOR  ::diff 0

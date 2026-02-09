@@ -1,0 +1,37 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2022 - 2024 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+for (structdim0 : DIMENSIONS; structdim1 : DIMENSIONS;
+     spacedim : SPACE_DIMENSIONS)
+  {
+#if structdim0 <= spacedim && structdim0 >= structdim1
+
+    template std::vector<std::array<Point<spacedim>, structdim1 + 1>>
+    compute_intersection_of_cells<structdim0, structdim1, spacedim>(
+      const typename Triangulation<structdim0, spacedim>::cell_iterator &cell0,
+      const typename Triangulation<structdim1, spacedim>::cell_iterator &cell1,
+      const Mapping<structdim0, spacedim> &mapping0,
+      const Mapping<structdim1, spacedim> &mapping1,
+      const double                         tol);
+
+    template std::vector<std::array<Point<spacedim>, structdim1 + 1>>
+    compute_intersection_of_cells<structdim0, structdim1, spacedim>(
+      const ArrayView<const Point<spacedim>> &vertices0,
+      const ArrayView<const Point<spacedim>> &vertices1,
+      const double                            tol);
+
+#endif
+  }

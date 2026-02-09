@@ -1,0 +1,6 @@
+
+DEAL::Size 32 Unknowns 961
+DEAL::Testing non-symmetric mode
+DEAL::residual = 7.366e-13
+DEAL::Testing symmetric mode
+DEAL::residual = 5.412e-13

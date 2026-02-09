@@ -1,0 +1,44 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2010 - 2021 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+    namespace parallel
+    \{
+      namespace shared
+      \{
+#if deal_II_dimension <= deal_II_space_dimension
+        template class Triangulation<deal_II_dimension,
+                                     deal_II_space_dimension>;
+#endif
+      \}
+    \}
+
+    namespace internal
+    \{
+      namespace parallel
+      \{
+        namespace shared
+        \{
+#if deal_II_dimension <= deal_II_space_dimension
+          template class TemporarilyRestoreSubdomainIds<
+            deal_II_dimension,
+            deal_II_space_dimension>;
+#endif
+        \}
+      \}
+    \}
+  }

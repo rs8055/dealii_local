@@ -1,0 +1,34 @@
+
+DEAL::XDMFEntry before serialization: 
+DEAL::
+DEAL::<Grid Name="mesh" GridType="Uniform">
+  <Time Value="0.5"/>
+  <Geometry GeometryType="XYZ">
+    <DataItem Dimensions="128 3" NumberType="Float" Precision="8" Format="HDF">
+      mesh.h5:/nodes
+    </DataItem>
+  </Geometry>
+  <Topology TopologyType="Quadrilateral" NumberOfElements="16">
+    <DataItem Dimensions="16 4" NumberType="UInt" Format="HDF">
+      mesh.h5:/cells
+    </DataItem>
+  </Topology>
+</Grid>
+
+DEAL::XDMFEntry after de-serialization: 
+DEAL::
+DEAL::<Grid Name="mesh" GridType="Uniform">
+  <Time Value="0.5"/>
+  <Geometry GeometryType="XYZ">
+    <DataItem Dimensions="128 3" NumberType="Float" Precision="8" Format="HDF">
+      mesh.h5:/nodes
+    </DataItem>
+  </Geometry>
+  <Topology TopologyType="Quadrilateral" NumberOfElements="16">
+    <DataItem Dimensions="16 4" NumberType="UInt" Format="HDF">
+      mesh.h5:/cells
+    </DataItem>
+  </Topology>
+</Grid>
+
+DEAL::OK

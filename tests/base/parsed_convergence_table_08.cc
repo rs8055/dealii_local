@@ -1,0 +1,69 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2019 - 2022 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+// Test the functionality of the ParsedConvergenceTable class for
+// custom error computations, with no extra columns.
+
+#include <deal.II/base/function_lib.h>
+#include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/parsed_convergence_table.h>
+
+#include <deal.II/dofs/dof_handler.h>
+
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_system.h>
+
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+#include <deal.II/lac/vector.h>
+
+#include <map>
+
+#include "../tests.h"
+
+int
+main()
+{
+  initlog();
+
+  ParsedConvergenceTable table({"u"}, {{}});
+
+  ParameterHandler prm;
+  table.add_parameters(prm);
+
+  std::string input = "set Extra columns = \n";
+
+  prm.parse_input_from_string(input);
+
+  Triangulation<2> tria;
+  GridGenerator::hyper_cube(tria);
+
+  FESystem<2>   fe(FE_Q<2>(1), 1);
+  DoFHandler<2> dh(tria);
+
+  Functions::CosineFunction<2> exact(1);
+
+  for (unsigned int i = 0; i < 5; ++i)
+    {
+      tria.refine_global(1);
+      dh.distribute_dofs(fe);
+      Vector<double> sol(dh.n_dofs());
+
+      auto cycle = [&]() { return (i + 1) * 1.0; };
+      table.add_extra_column("cycle", cycle);
+      table.error_from_exact(dh, sol, exact);
+    }
+  table.output_table(deallog.get_file_stream());
+}

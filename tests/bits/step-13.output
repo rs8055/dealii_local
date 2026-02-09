@@ -1,0 +1,41 @@
+
+DEAL::Running tests with "global" refinement criterion:
+DEAL::-------------------------------------------------
+DEAL::Refinement cycle: 
+DEAL::0 
+DEAL::1 
+DEAL::2 
+DEAL::3 
+DEAL::4 
+DEAL::
+DoFs u(x_0) 
+25   1.2868 
+81   1.6945 
+289  1.4658 
+1089 1.5679 
+4225 1.5882 
+DEAL::
+DEAL::Running tests with "kelly" refinement criterion:
+DEAL::------------------------------------------------
+DEAL::Refinement cycle: 
+DEAL::0 
+DEAL::1 
+DEAL::2 
+DEAL::3 
+DEAL::4 
+DEAL::5 
+DEAL::6 
+DEAL::7 
+DEAL::8 
+DEAL::
+DoFs u(x_0) 
+25   1.2868 
+43   0.9789 
+86   1.1580 
+155  1.3960 
+292  1.6537 
+540  1.5091 
+982  1.5713 
+1855 1.5643 
+3403 1.5923 
+DEAL::

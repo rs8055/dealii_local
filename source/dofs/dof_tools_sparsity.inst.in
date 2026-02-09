@@ -1,0 +1,109 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2013 - 2024 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS;
+     scalar : REAL_AND_COMPLEX_SCALARS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    template void
+    DoFTools::make_boundary_sparsity_pattern<deal_II_dimension,
+                                             deal_II_space_dimension,
+                                             scalar>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      const std::map<types::boundary_id,
+                     const Function<deal_II_space_dimension, scalar> *> &,
+      const std::vector<types::global_dof_index> &,
+      SparsityPatternBase &);
+
+    template void
+    DoFTools::make_sparsity_pattern<deal_II_dimension, deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &,
+      const AffineConstraints<scalar> &,
+      const bool,
+      const types::subdomain_id);
+
+    template void
+    DoFTools::make_sparsity_pattern<deal_II_dimension, deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      const Table<2, Coupling> &,
+      SparsityPatternBase &,
+      const AffineConstraints<scalar> &,
+      const bool,
+      const types::subdomain_id);
+
+    template void DoFTools::make_flux_sparsity_pattern<deal_II_dimension,
+                                                       deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &,
+      const AffineConstraints<scalar> &,
+      const bool,
+      const Table<2, Coupling> &,
+      const Table<2, Coupling> &,
+      const types::subdomain_id,
+      const std::function<bool(
+        const typename DoFHandler<deal_II_dimension, deal_II_space_dimension>::
+          active_cell_iterator &,
+        const unsigned int)> &);
+
+    template void DoFTools::make_flux_sparsity_pattern<deal_II_dimension,
+                                                       deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &,
+      const AffineConstraints<scalar> &,
+      const bool,
+      const types::subdomain_id);
+#endif
+  }
+
+for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
+  {
+#if deal_II_dimension <= deal_II_space_dimension
+    template void
+    DoFTools::make_sparsity_pattern<deal_II_dimension, deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &);
+
+    template void
+    DoFTools::make_boundary_sparsity_pattern<deal_II_dimension,
+                                             deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      const std::vector<types::global_dof_index> &,
+      SparsityPatternBase &);
+
+    template void DoFTools::make_flux_sparsity_pattern<deal_II_dimension,
+                                                       deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &);
+
+    template void DoFTools::make_flux_sparsity_pattern<deal_II_dimension,
+                                                       deal_II_space_dimension>(
+      const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
+      SparsityPatternBase &,
+      const Table<2, Coupling> &,
+      const Table<2, Coupling> &,
+      const types::subdomain_id);
+
+    template Table<2, DoFTools::Coupling>
+    DoFTools::dof_couplings_from_component_couplings(
+      const FiniteElement<deal_II_dimension, deal_II_space_dimension> &fe,
+      const Table<2, DoFTools::Coupling> &component_couplings);
+
+    template std::vector<Table<2, DoFTools::Coupling>>
+    DoFTools::dof_couplings_from_component_couplings(
+      const hp::FECollection<deal_II_dimension, deal_II_space_dimension> &fe,
+      const Table<2, DoFTools::Coupling> &component_couplings);
+#endif
+  }

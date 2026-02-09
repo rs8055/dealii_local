@@ -1,0 +1,3 @@
+
+DEAL::ExcValueDoesNotMatchPattern(new_value, entries->get<std::string>( path + path_separator + "pattern_description"))
+    The string <2x> does not match the given pattern <[Integer range -2147483648...2147483647 (inclusive)]>.

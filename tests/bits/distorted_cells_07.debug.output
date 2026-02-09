@@ -1,0 +1,7 @@
+
+DEAL::Twisted cell in 1d
+DEAL::ExcGridHasInvalidCell(cell_no)
+DEAL::Twisted cell in 2d
+DEAL::ExcGridHasInvalidCell(cell_no)
+DEAL::Twisted cell in 3d
+DEAL::(typename Mapping<dim, spacedim>::ExcDistortedMappedCell( cell->center(), det, point))

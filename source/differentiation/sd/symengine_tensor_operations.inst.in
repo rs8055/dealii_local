@@ -1,0 +1,84 @@
+// ------------------------------------------------------------------------
+//
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2019 - 2023 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// Part of the source code is dual licensed under Apache-2.0 WITH
+// LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+// governing the source code and code contributions can be found in
+// LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+//
+// ------------------------------------------------------------------------
+
+
+for (deal_II_dimension : DIMENSIONS)
+  {
+    namespace Differentiation
+    \{
+      namespace SD
+      \{
+
+        template Tensor<1, deal_II_dimension, Expression>
+        make_vector_of_symbols<deal_II_dimension>(const std::string &symbol);
+
+        template Tensor<1, deal_II_dimension, Expression>
+        make_vector_of_symbolic_functions<deal_II_dimension>(
+          const std::string             &symbol,
+          const types::substitution_map &arguments);
+
+        /*--- Rank-0 definitions ---*/
+
+        template Tensor<0, deal_II_dimension, Expression>
+        make_tensor_of_symbols<0, deal_II_dimension>(const std::string &symbol);
+
+        template Tensor<0, deal_II_dimension, Expression>
+        make_tensor_of_symbolic_functions<0, deal_II_dimension>(
+          const std::string             &symbol,
+          const types::substitution_map &arguments);
+      \}
+    \}
+  }
+
+
+for (rank : RANKS; deal_II_dimension : DIMENSIONS)
+  {
+    namespace Differentiation
+    \{
+      namespace SD
+      \{
+
+        template Tensor<rank, deal_II_dimension, Expression>
+        make_tensor_of_symbols<rank, deal_II_dimension>(
+          const std::string &symbol);
+
+        template Tensor<rank, deal_II_dimension, Expression>
+        make_tensor_of_symbolic_functions<rank, deal_II_dimension>(
+          const std::string             &symbol,
+          const types::substitution_map &arguments);
+
+      \}
+    \}
+  }
+
+
+for (rank : SYM_RANKS; deal_II_dimension : DIMENSIONS)
+  {
+    namespace Differentiation
+    \{
+      namespace SD
+      \{
+
+        template SymmetricTensor<rank, deal_II_dimension, Expression>
+        make_symmetric_tensor_of_symbols<rank, deal_II_dimension>(
+          const std::string &symbol);
+
+        template SymmetricTensor<rank, deal_II_dimension, Expression>
+        make_symmetric_tensor_of_symbolic_functions<rank, deal_II_dimension>(
+          const std::string             &symbol,
+          const types::substitution_map &arguments);
+
+      \}
+    \}
+  }

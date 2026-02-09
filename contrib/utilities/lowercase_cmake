@@ -1,0 +1,70 @@
+#!/bin/bash
+## ------------------------------------------------------------------------
+##
+## SPDX-License-Identifier: LGPL-2.1-or-later
+## Copyright (C) 2022 by the deal.II authors
+##
+## This file is part of the deal.II library.
+##
+## Part of the source code is dual licensed under Apache-2.0 WITH
+## LLVM-exception OR LGPL-2.1-or-later. Detailed license information
+## governing the source code and code contributions can be found in
+## LICENSE.md and CONTRIBUTING.md at the top level directory of deal.II.
+##
+## ------------------------------------------------------------------------
+
+#
+#
+#
+
+if [ ! -f contrib/utilities/lowercase_cmake ]; then
+  echo "*** This script must be run from the top-level directory of deal.II."
+  exit 1
+fi
+
+#
+# Collect all CMake functions and deal.II macro/functions:
+#
+
+collect_function_names() {
+  grep -iP "^(macro|function)\(.*" cmake/macros/macro_* |
+    sed -E -e 's#cmake/macros/macro_.*(macro|function)\(##I' -e 's#( .*\)|\))$##' |
+    sort |
+    tr '[:upper:]' '[:lower:]'
+  cmake --help-command-list | grep -v "cmake version"
+}
+
+#
+# Create a rules file for sed:
+#
+
+SED_FILE="$(mktemp --tmpdir dealii_cmake_lowercase_sed.XXXXXXXXXX)"
+trap 'rm -f -- "$SED_FILE"' EXIT
+
+collect_function_names | while read command ; do
+  echo 's/'"${command}"'\(\s*\)(/'"$command"'\1(/gI'
+done > "${SED_FILE}"
+
+#
+# Add rules to ensure that else(), endif(), enmacro(), enfunction()
+# statements do not contain a parameter.
+#
+
+echo 's/else([^)]*)/else()/gI' >> "${SED_FILE}"
+echo 's/endif([^)]*)/endif()/gI' >> "${SED_FILE}"
+echo 's/endmacro([^)]*)/endmacro()/gI' >> "${SED_FILE}"
+echo 's/endfunction([^)]*)/endfunction()/gI' >> "${SED_FILE}"
+
+#
+# Add rules to ensure that all macro definitions are lowercase.
+#
+
+echo 's/macro\(\s*\)(\(\S*\)/macro\1(\L\2\E/gI' >> "${SED_FILE}"
+echo 's/function\(\s*\)(\(\S*\)/function\1(\L\2\E/gI' >> "${SED_FILE}"
+
+#
+# Apply rules file to all CMake files:
+#
+
+git ls-files -z -- '*.cmake' '*.cmake.in' '*CMakeLists.txt' |
+  xargs -0 sed -i -f "${SED_FILE}"

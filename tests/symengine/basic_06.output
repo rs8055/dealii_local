@@ -1,0 +1,4 @@
+
+DEAL::f_CQ_subs: eval: 37.5
+DEAL::df_CQ_dC: eval: 15.0000
+DEAL::D2f_CQ_DC_dC: eval: 6.00000
