@@ -67,18 +67,102 @@
 #include <deal.II/non_matching/fe_values.h>
 #include <deal.II/non_matching/mesh_classifier.h>
 
-// @sect3{The LaplaceSolver class Template}
+// @sect3{The HeatSolver class Template}
 // We then define the main class that solves the Laplace problem.
 
 namespace Step98
 {
   using namespace dealii;
-
+  // ==================================================================
+  // Analytic Solution
+  // ==================================================================
   template <int dim>
-  class LaplaceSolver
+  class AnalyticalSolution : public Function<dim>
   {
   public:
-    LaplaceSolver();
+    double value(const Point<dim>  &point,
+                 const unsigned int component = 0) const override;
+  };
+
+  template <int dim>
+  double AnalyticalSolution<dim>::value(const Point<dim>  &point,
+                                        const unsigned int component) const
+  {
+    AssertIndexRange(component, this->n_components);
+    (void)component;
+    const double t = this->get_time();
+    return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
+  }
+  
+  // ==================================================================
+  // RHS Function
+  // ==================================================================
+  template <int dim>
+  class RightHandSide : public Function<dim>
+  {
+  public:
+    double value(const Point<dim>  &point,
+                 const unsigned int component = 0) const override;
+  };
+ 
+  template <int dim>
+  double RightHandSide<dim>::value(const Point<dim>  &point,
+                                        const unsigned int component) const
+  {
+    AssertIndexRange(component, this->n_components);
+    (void)component;
+    const double t = this->get_time();
+    const double g = 1.0 - 2.0 / dim * (point.norm_square() - 1.0);
+    return std::exp(-t) * (4.0 - g);
+  }
+
+  // ==================================================================
+  // Boundary Values
+  // ==================================================================
+  template <int dim>
+  class BoundaryValues : public Function<dim>
+  {
+  public:
+    double value(const Point<dim>  &p,
+                        const unsigned int component = 0) const override;
+  };
+
+  template <int dim>
+  double BoundaryValues<dim>::value(const Point<dim> &p,
+                                    const unsigned int component) const
+  {
+    AssertIndexRange(component, this->n_components);
+    (void)component;
+    const double t = this->get_time();
+    return 1.0 * std::exp(-t);
+  }
+
+
+  // ==================================================================
+  // Initial condition
+  // ==================================================================
+  template <int dim>
+  class InitialCondition : public Function<dim>
+  {
+  public:
+    double value(const Point<dim>  &p,
+                        const unsigned int component = 0) const override;
+  };
+
+  template <int dim>
+  double InitialCondition<dim>::value(const Point<dim> &p,
+                                      const unsigned int component) const
+  {
+    AssertIndexRange(component, this->n_components);
+    (void)component;
+    return 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
+  }
+
+  template <int dim>
+  class HeatSolver
+  {
+  public:
+    HeatSolver();
 
     void run();
 
@@ -132,7 +216,7 @@ namespace Step98
 
 
   template <int dim>
-  LaplaceSolver<dim>::LaplaceSolver()
+  HeatSolver<dim>::HeatSolver()
     : fe_degree(1)
     , rhs_function(4.0)
     , boundary_condition(1.0)
@@ -149,7 +233,7 @@ namespace Step98
   // a unit disc centered at the origin, so we need to make the background mesh
   // a bit larger than $[-1, 1]^{\text{dim}}$ to completely cover $\Omega$.
   template <int dim>
-  void LaplaceSolver<dim>::make_grid()
+  void HeatSolver<dim>::make_grid()
   {
     std::cout << "Creating background mesh" << std::endl;
 
@@ -165,7 +249,7 @@ namespace Step98
   // DoFs over all elements in $\mathcal{T}_h$. We then set up the discrete
   // level set function by interpolating onto this finite element space.
   template <int dim>
-  void LaplaceSolver<dim>::setup_discrete_level_set()
+  void HeatSolver<dim>::setup_discrete_level_set()
   {
     std::cout << "Setting up discrete level set function" << std::endl;
 
@@ -194,7 +278,7 @@ namespace Step98
   // the mesh and tell the DoFHandler to use FE_Q on elements that are inside or
   // intersected, and FE_Nothing on the elements that are outside.
   template <int dim>
-  void LaplaceSolver<dim>::distribute_dofs()
+  void HeatSolver<dim>::distribute_dofs()
   {
     std::cout << "Distributing degrees of freedom" << std::endl;
 
@@ -229,7 +313,7 @@ namespace Step98
   // tables to it. If the problem was vector-valued, these tables would allow us
   // to couple only some of the vector components. This is discussed in step-46.
   template <int dim>
-  void LaplaceSolver<dim>::initialize_matrices()
+  void HeatSolver<dim>::initialize_matrices()
   {
     std::cout << "Initializing matrices" << std::endl;
 
@@ -270,7 +354,7 @@ namespace Step98
   // $\mathcal{F}_h$. That is, it returns true if the face of the incoming cell
   // belongs to the set $\mathcal{F}_h$.
   template <int dim>
-  bool LaplaceSolver<dim>::face_has_ghost_penalty(
+  bool HeatSolver<dim>::face_has_ghost_penalty(
     const typename Triangulation<dim>::active_cell_iterator &cell,
     const unsigned int                                       face_index) const
   {
@@ -298,7 +382,7 @@ namespace Step98
 
   // @sect3{Assembling the System}
   template <int dim>
-  void LaplaceSolver<dim>::assemble_system()
+  void HeatSolver<dim>::assemble_system()
   {
     std::cout << "Assembling" << std::endl;
 
@@ -530,7 +614,7 @@ namespace Step98
 
   // @sect3{Solving the System}
   template <int dim>
-  void LaplaceSolver<dim>::solve()
+  void HeatSolver<dim>::solve()
   {
     std::cout << "Solving system" << std::endl;
 
@@ -549,7 +633,7 @@ namespace Step98
   // To disregard them, we write a small lambda function and use the
   // set_cell_selection function of the DataOut class.
   template <int dim>
-  void LaplaceSolver<dim>::output_results() const
+  void HeatSolver<dim>::output_results() const
   {
     std::cout << "Writing vtu file" << std::endl;
 
@@ -579,35 +663,13 @@ namespace Step98
   //  u(x) = 1 - \frac{2}{\text{dim}}(\| x \|^2 - 1) , \qquad x \in
   //  \overline{\Omega}.
   // @f}
-  // We first create a function corresponding to the analytical solution:
-  template <int dim>
-  class AnalyticalSolution : public Function<dim>
-  {
-  public:
-    double value(const Point<dim>  &point,
-                 const unsigned int component = 0) const override;
-  };
-
-
-
-  template <int dim>
-  double AnalyticalSolution<dim>::value(const Point<dim>  &point,
-                                        const unsigned int component) const
-  {
-    AssertIndexRange(component, this->n_components);
-    (void)component;
-
-    return 1. - 2. / dim * (point.norm_square() - 1.);
-  }
-
-
 
   // Of course, the analytical solution, and thus also the error, is only
   // defined in $\overline{\Omega}$. Thus, to compute the $L^2$-error we must
   // proceed in the same way as when we assembled the linear system. We first
   // create an NonMatching::FEValues object.
   template <int dim>
-  double LaplaceSolver<dim>::compute_L2_error() const
+  double HeatSolver<dim>::compute_L2_error() const
   {
     std::cout << "Computing L2 error" << std::endl;
 
@@ -666,7 +728,7 @@ namespace Step98
   // refinement cycle, we solve the problem, compute the error, and add the
   // $L^2$-error and the mesh size to a ConvergenceTable.
   template <int dim>
-  void LaplaceSolver<dim>::run()
+  void HeatSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
     const unsigned int n_refinements = 3;
@@ -732,6 +794,6 @@ int main()
 {
   const int dim = 2;
 
-  Step98::LaplaceSolver<dim> laplace_solver;
+  Step98::HeatSolver<dim> laplace_solver;
   laplace_solver.run();
 }
