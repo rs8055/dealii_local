@@ -68,7 +68,7 @@
 #include <deal.II/non_matching/mesh_classifier.h>
 
 // @sect3{The HeatSolver class Template}
-// We then define the main class that solves the Laplace problem.
+// We then define the main class that solves the Heat problem.
 
 namespace Step98
 {
@@ -91,6 +91,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
+    // const double t = 0;
     return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
   }
   
@@ -112,6 +113,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
+    // const double t = 0;
     const double g = 1.0 - 2.0 / dim * (point.norm_square() - 1.0);
     return std::exp(-t) * (4.0 - g);
   }
@@ -134,6 +136,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
+    // const double t = 0;
     return 1.0 * std::exp(-t);
   }
 
@@ -188,9 +191,11 @@ namespace Step98
       const unsigned int face_index) const;
 
     const unsigned int fe_degree;
-
-    const Functions::ConstantFunction<dim> rhs_function;
-    const Functions::ConstantFunction<dim> boundary_condition;
+    
+    AnalyticalSolution<dim> analytical_solution;
+    RightHandSide<dim>      rhs_function;
+    BoundaryValues<dim>   boundary_condition;
+    InitialCondition<dim> initial_condition;
 
     Triangulation<dim> triangulation;
 
@@ -204,13 +209,27 @@ namespace Step98
     // equation.
     hp::FECollection<dim> fe_collection;
     DoFHandler<dim>       dof_handler;
-    Vector<double>        solution;
+    Vector<double> solution;          // u^n
+    Vector<double> old_solution;      // u^{n-1}
 
     NonMatching::MeshClassifier<dim> mesh_classifier;
 
     SparsityPattern      sparsity_pattern;
+    SparseMatrix<double> mass_matrix;
     SparseMatrix<double> stiffness_matrix;
+    SparseMatrix<double> system_matrix;
     Vector<double>       rhs;
+
+    double       time;
+    double       time_step;
+    double       final_time;
+    unsigned int timestep_number;
+    
+    // Theta parameter for time discretization
+    // theta = 0: Forward Euler (explicit)
+    // theta = 0.5: Crank-Nicolson
+    // theta = 1: Backward Euler (implicit, most stable)
+    const double theta;
   };
 
 
@@ -218,12 +237,15 @@ namespace Step98
   template <int dim>
   HeatSolver<dim>::HeatSolver()
     : fe_degree(1)
-    , rhs_function(4.0)
-    , boundary_condition(1.0)
     , fe_level_set(fe_degree)
     , level_set_dof_handler(triangulation)
     , dof_handler(triangulation)
     , mesh_classifier(level_set_dof_handler, level_set)
+    , time(0.0)           
+    , time_step(0.01)     
+    , final_time(1.0)     
+    , timestep_number(0)
+    , theta(1.0)
   {}
 
 
@@ -343,8 +365,11 @@ namespace Step98
                                          face_has_flux_coupling);
     sparsity_pattern.copy_from(dsp);
 
+    mass_matrix.reinit(sparsity_pattern);
     stiffness_matrix.reinit(sparsity_pattern);
+    system_matrix.reinit(sparsity_pattern);    
     solution.reinit(dof_handler.n_dofs());
+    old_solution.reinit(dof_handler.n_dofs());
     rhs.reinit(dof_handler.n_dofs());
   }
 
@@ -387,12 +412,17 @@ namespace Step98
     std::cout << "Assembling" << std::endl;
 
     const unsigned int n_dofs_per_cell = fe_collection[0].dofs_per_cell;
+    FullMatrix<double> local_mass(n_dofs_per_cell, n_dofs_per_cell);
     FullMatrix<double> local_stiffness(n_dofs_per_cell, n_dofs_per_cell);
-    Vector<double>     local_rhs(n_dofs_per_cell);
+
+    // The below local_rhs will be assembled later on because now it will depend upon time value too while the LHS system matrix is independent of time. Consequently
+    // all the rhs assembly is deleted
+    // Vector<double>     local_rhs(n_dofs_per_cell);
     std::vector<types::global_dof_index> local_dof_indices(n_dofs_per_cell);
 
-    const double ghost_parameter   = 0.5;
-    const double nitsche_parameter = 5 * (fe_degree + 1) * fe_degree;
+    const double ghost_parameter_1   = 0.75;
+    const double ghost_parameter_2   = 1.5;
+    const double nitsche_parameter = 5 * (fe_degree) * fe_degree;
 
     // Since the ghost penalty is similar to a DG flux term, the simplest way to
     // assemble it is to use an FEInterfaceValues object.
@@ -449,8 +479,8 @@ namespace Step98
          dof_handler.active_cell_iterators() |
            IteratorFilters::ActiveFEIndexEqualTo(ActiveFEIndex::lagrange))
       {
+        local_mass = 0;
         local_stiffness = 0;
-        local_rhs       = 0;
 
         const double cell_side_length = cell->minimum_vertex_distance();
 
@@ -492,14 +522,19 @@ namespace Step98
                 {
                   for (const unsigned int j : inside_fe_values->dof_indices())
                     {
+                      local_mass(i, j) +=
+                        inside_fe_values->shape_value(i, q) *
+                        inside_fe_values->shape_value(j, q) *
+                        inside_fe_values->JxW(q);
+
                       local_stiffness(i, j) +=
                         inside_fe_values->shape_grad(i, q) *
                         inside_fe_values->shape_grad(j, q) *
                         inside_fe_values->JxW(q);
                     }
-                  local_rhs(i) += rhs_function.value(point) *
-                                  inside_fe_values->shape_value(i, q) *
-                                  inside_fe_values->JxW(q);
+                  // local_rhs(i) += rhs_function.value(point) *
+                  //                   inside_fe_values->shape_value(i, q) *
+                  //                   inside_fe_values->JxW(q);
                 }
             }
 
@@ -545,20 +580,21 @@ namespace Step98
                              surface_fe_values->shape_value(j, q)) *
                           surface_fe_values->JxW(q);
                       }
-                    local_rhs(i) +=
-                      boundary_condition.value(point) *
-                      (nitsche_parameter / cell_side_length *
-                         surface_fe_values->shape_value(i, q) -
-                       normal * surface_fe_values->shape_grad(i, q)) *
-                      surface_fe_values->JxW(q);
+                    // local_rhs(i) +=
+                    //   boundary_condition.value(point) *
+                    //   (nitsche_parameter / cell_side_length *
+                    //      surface_fe_values->shape_value(i, q) -
+                    //    normal * surface_fe_values->shape_grad(i, q)) *
+                    //   surface_fe_values->JxW(q);
                   }
               }
           }
 
         cell->get_dof_indices(local_dof_indices);
 
+        mass_matrix.add(local_dof_indices, local_mass);  
         stiffness_matrix.add(local_dof_indices, local_stiffness);
-        rhs.add(local_dof_indices, local_rhs);
+        // rhs.add(local_dof_indices, local_rhs);
 
         // The assembly of the ghost penalty term is straight forward. As we
         // iterate over the local faces, we first check if the current face
@@ -581,6 +617,8 @@ namespace Step98
 
               const unsigned int n_interface_dofs =
                 fe_interface_values.n_current_interface_dofs();
+              FullMatrix<double> local_mass_stabilization(n_interface_dofs,
+                                                     n_interface_dofs);
               FullMatrix<double> local_stabilization(n_interface_dofs,
                                                      n_interface_dofs);
               for (unsigned int q = 0;
@@ -592,8 +630,15 @@ namespace Step98
                   for (unsigned int i = 0; i < n_interface_dofs; ++i)
                     for (unsigned int j = 0; j < n_interface_dofs; ++j)
                       {
+                        local_mass_stabilization(i, j) +=
+                          .5 * ghost_parameter_1 * std::pow(cell_side_length,3) * normal *
+                          fe_interface_values.jump_in_shape_gradients(i, q) *
+                          normal *
+                          fe_interface_values.jump_in_shape_gradients(j, q) *
+                          fe_interface_values.JxW(q);
+                        
                         local_stabilization(i, j) +=
-                          .5 * ghost_parameter * cell_side_length * normal *
+                          .5 * ghost_parameter_2 * cell_side_length * normal *
                           fe_interface_values.jump_in_shape_gradients(i, q) *
                           normal *
                           fe_interface_values.jump_in_shape_gradients(j, q) *
@@ -605,10 +650,15 @@ namespace Step98
                 local_interface_dof_indices =
                   fe_interface_values.get_interface_dof_indices();
 
+              mass_matrix.add(local_interface_dof_indices,
+                                   local_mass_stabilization);
               stiffness_matrix.add(local_interface_dof_indices,
                                    local_stabilization);
             }
       }
+
+    system_matrix.copy_from(mass_matrix);
+    system_matrix.add(theta * time_step, stiffness_matrix);
   }
 
 
@@ -616,12 +666,121 @@ namespace Step98
   template <int dim>
   void HeatSolver<dim>::solve()
   {
+
+    rhs = 0;
+    mass_matrix.vmult(rhs, old_solution);
+
+    if (theta < 1.0)
+      {
+        Vector<double> tmp(solution.size());
+        stiffness_matrix.vmult(tmp, old_solution);
+        rhs.add(-(1.0 - theta) * time_step, tmp);
+      }
+
+    const unsigned int n_dofs_per_cell = fe_collection[0].dofs_per_cell;
+    Vector<double> local_rhs(n_dofs_per_cell);
+    std::vector<types::global_dof_index> local_dof_indices(n_dofs_per_cell);
+
+    const double nitsche_parameter = 5 * (fe_degree) * fe_degree;
+
+    const QGauss<1> quadrature_1D(fe_degree + 1);
+
+    NonMatching::RegionUpdateFlags region_update_flags;
+    region_update_flags.inside = update_values | update_JxW_values | 
+                                 update_quadrature_points;
+    region_update_flags.surface = update_values | update_gradients |
+                                  update_JxW_values | update_quadrature_points |
+                                  update_normal_vectors;
+
+    NonMatching::FEValues<dim> non_matching_fe_values(fe_collection,
+                                                      quadrature_1D,
+                                                      region_update_flags,
+                                                      mesh_classifier,
+                                                      level_set_dof_handler,
+                                                      level_set);
+
+    // Set time for functions
+    const double t_current = time;
+    const double t_old = time - time_step;
+
+    for (const auto &cell :
+         dof_handler.active_cell_iterators() |
+           IteratorFilters::ActiveFEIndexEqualTo(ActiveFEIndex::lagrange))
+      {
+        local_rhs = 0;
+        const double cell_side_length = cell->minimum_vertex_distance();
+
+        non_matching_fe_values.reinit(cell);
+
+        // ============================================================
+        // VOLUME SOURCE TERM: ∫ f φᵢ dx
+        // ============================================================
+        const std::optional<FEValues<dim>> &inside_fe_values =
+          non_matching_fe_values.get_inside_fe_values();
+
+        if (inside_fe_values)
+          {
+            for (const unsigned int q :
+                 inside_fe_values->quadrature_point_indices())
+              {
+                const Point<dim> &point = inside_fe_values->quadrature_point(q);
+                
+                // Evaluate f at θ*t^n + (1-θ)*t^{n-1}
+                rhs_function.set_time(theta * t_current + (1.0 - theta) * t_old);
+                const double f_value = rhs_function.value(point);
+
+                for (const unsigned int i : inside_fe_values->dof_indices())
+                  {
+                    local_rhs(i) += time_step * f_value *
+                                    inside_fe_values->shape_value(i, q) *
+                                    inside_fe_values->JxW(q);
+                  }
+              }
+          }
+
+        // ============================================================
+        // BOUNDARY TERMS: Nitsche RHS
+        // ============================================================
+        const std::optional<NonMatching::FEImmersedSurfaceValues<dim>>
+          &surface_fe_values = non_matching_fe_values.get_surface_fe_values();
+
+        if (surface_fe_values)
+          {
+            for (const unsigned int q :
+                 surface_fe_values->quadrature_point_indices())
+              {
+                const Point<dim> &point =
+                  surface_fe_values->quadrature_point(q);
+                const Tensor<1, dim> &normal =
+                  surface_fe_values->normal_vector(q);
+
+                // Evaluate g at θ*t^n + (1-θ)*t^{n-1}
+                boundary_condition.set_time(theta * t_current + 
+                                           (1.0 - theta) * t_old);
+                const double g_value = boundary_condition.value(point);
+
+                for (const unsigned int i : surface_fe_values->dof_indices())
+                  {
+                    local_rhs(i) +=
+                      time_step * g_value *
+                      (nitsche_parameter / cell_side_length *
+                         surface_fe_values->shape_value(i, q) -
+                       normal * surface_fe_values->shape_grad(i, q)) *
+                      surface_fe_values->JxW(q);
+                  }
+              }
+          }
+
+        cell->get_dof_indices(local_dof_indices);
+        rhs.add(local_dof_indices, local_rhs);
+      }
+
     std::cout << "Solving system" << std::endl;
 
     const unsigned int max_iterations = solution.size();
     SolverControl      solver_control(max_iterations);
     SolverCG<>         solver(solver_control);
-    solver.solve(stiffness_matrix, solution, rhs, PreconditionIdentity());
+    solver.solve(system_matrix, solution, rhs, PreconditionIdentity());
   }
 
 
@@ -689,7 +848,7 @@ namespace Step98
     // We then iterate iterate over the cells that have LocationToLevelSetValue
     // value inside or intersected again. For each quadrature point, we compute
     // the pointwise error and use this to compute the integral.
-    AnalyticalSolution<dim> analytical_solution;
+    analytical_solution.set_time(time);
     double                  error_L2_squared = 0;
 
     for (const auto &cell :
@@ -746,6 +905,9 @@ namespace Step98
         distribute_dofs();
         initialize_matrices();
         assemble_system();
+        VectorTools::interpolate(dof_handler,
+                               initial_condition,
+                               old_solution);
         solve();
         if (cycle == 1)
           output_results();
