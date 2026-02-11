@@ -91,8 +91,8 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    // const double t = 0;
     return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
+    // return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
   }
   
   // ==================================================================
@@ -113,9 +113,9 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    // const double t = 0;
     const double g = 1.0 - 2.0 / dim * (point.norm_square() - 1.0);
     return std::exp(-t) * (4.0 - g);
+    // return -std::exp(t) * (std::pow(point[0],9) * std::pow(point[1],8) +72 * std::pow(point[0],7) * std::pow(point[1],8) + 56 * std::pow(point[0],9) * std::pow(point[1],6));
   }
 
   // ==================================================================
@@ -136,8 +136,8 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    // const double t = 0;
     return 1.0 * std::exp(-t);
+    // return std::pow(p[0],9) * std::pow(p[1],8) * std::exp(-t);
   }
 
 
@@ -159,6 +159,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     return 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
+    // return std::pow(p[0],9) * std::pow(p[1],8);
   }
 
   template <int dim>
@@ -242,8 +243,8 @@ namespace Step98
     , dof_handler(triangulation)
     , mesh_classifier(level_set_dof_handler, level_set)
     , time(0.0)           
-    , time_step(0.01)     
-    , final_time(1.0)     
+    , time_step(0.005)     
+    , final_time(.25)     
     , timestep_number(0)
     , theta(1.0)
   {}
@@ -258,8 +259,7 @@ namespace Step98
   void HeatSolver<dim>::make_grid()
   {
     std::cout << "Creating background mesh" << std::endl;
-
-    GridGenerator::hyper_cube(triangulation, -1.21, 1.21);
+    GridGenerator::hyper_cube(triangulation, -2 , 2);
     triangulation.refine_global(2);
   }
 
@@ -635,8 +635,7 @@ namespace Step98
                           fe_interface_values.jump_in_shape_gradients(i, q) *
                           normal *
                           fe_interface_values.jump_in_shape_gradients(j, q) *
-                          fe_interface_values.JxW(q);
-                        
+                          fe_interface_values.JxW(q);                        
                         local_stabilization(i, j) +=
                           .5 * ghost_parameter_2 * cell_side_length * normal *
                           fe_interface_values.jump_in_shape_gradients(i, q) *
@@ -778,7 +777,7 @@ namespace Step98
     std::cout << "Solving system" << std::endl;
 
     const unsigned int max_iterations = solution.size();
-    SolverControl      solver_control(max_iterations);
+    ReductionControl      solver_control(max_iterations,1e-20,1e-8);
     SolverCG<>         solver(solver_control);
     solver.solve(system_matrix, solution, rhs, PreconditionIdentity());
   }
@@ -891,11 +890,12 @@ namespace Step98
   void HeatSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
-    const unsigned int n_refinements = 3;
+    const unsigned int n_refinements = 2;
 
     make_grid();
-    static std::vector<double> prev_error;
-    static double prev_h = 0.0;
+    // std::vector<double> prev_error;
+    double prev_error = 0.0;
+    double prev_h = 0.0;
     for (unsigned int cycle = 0; cycle <= n_refinements; cycle++)
       {
         std::cout << "Refinement cycle " << cycle << std::endl;
@@ -912,62 +912,88 @@ namespace Step98
                                initial_condition,
                                old_solution);
 
-        std::vector<double> error_L2;
+        // std::vector<double> error_L2;
+        // error_L2.push_back(0);
+        double error_L2;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
-        error_L2.push_back(0);
+        time_step=(0.1)*std::pow(cell_side_length,1);
+        // time_step=(0.005);
         
-        while(time<final_time)
+        
+        while(time<final_time-1e-6)
         {
           time += time_step;
           timestep_number += 1;
 
           solve();
-          error_L2.push_back(compute_L2_error());
+          // error_L2.push_back(compute_L2_error());
+          error_L2 = compute_L2_error();
           std::cout<<time<<"    "<<timestep_number<<std::endl;
 
           old_solution = solution;
 
         }
+        output_results();
         convergence_table.add_value("Cycle", cycle);
         convergence_table.add_value("Mesh size", cell_side_length);
-        convergence_table.add_value("L2-Error-25", error_L2[25]);
-        convergence_table.add_value("L2-Error-50", error_L2[50]);
-        convergence_table.add_value("L2-Error-75", error_L2[75]);
-        convergence_table.add_value("L2-Error-100", error_L2[100]);
+        convergence_table.add_value("Time Step", time_step);
+        convergence_table.add_value("Time Step Number", timestep_number);
+        convergence_table.add_value("L2-Error", error_L2);
+        // convergence_table.add_value("L2-Error-25", error_L2[25]);
+        // convergence_table.add_value("L2-Error-50", error_L2[50]);
+        // convergence_table.add_value("L2-Error-75", error_L2[75]);
+        // convergence_table.add_value("L2-Error-100", error_L2[100]);
+        // if (cycle > 0)
+        // {
+        //   const double rate_25 =
+        //     std::log(error_L2[25] / prev_error[25]) /
+        //     std::log(cell_side_length / prev_h);
+
+        //     const double rate_50 =
+        //     std::log(error_L2[50] / prev_error[50]) /
+        //     std::log(cell_side_length / prev_h);
+
+        //     const double rate_75 =
+        //     std::log(error_L2[75] / prev_error[75]) /
+        //     std::log(cell_side_length / prev_h);
+
+        //     const double rate_100 =
+        //     std::log(error_L2[100] / prev_error[100]) /
+        //     std::log(cell_side_length / prev_h);
+
+        //   convergence_table.add_value("Rate_25", rate_25);
+        //   convergence_table.add_value("Rate_50", rate_50);
+        //   convergence_table.add_value("Rate_75", rate_75);
+        //   convergence_table.add_value("Rate_100", rate_100);
+        // }
+        // else
+        // {
+        //   convergence_table.add_value("Rate_25", 0.0);
+        //   convergence_table.add_value("Rate_50", 0.0);
+        //   convergence_table.add_value("Rate_75", 0.0);
+        //   convergence_table.add_value("Rate_100", 0.0);
+        // }
+
+        // prev_error = error_L2;
+        // prev_h = cell_side_length;
+
         if (cycle > 0)
         {
-          const double rate_25 =
-            std::log(error_L2[25] / prev_error[25]) /
+          const double rate =
+            std::log(error_L2 / prev_error) /
             std::log(cell_side_length / prev_h);
 
-            const double rate_50 =
-            std::log(error_L2[50] / prev_error[50]) /
-            std::log(cell_side_length / prev_h);
-
-            const double rate_75 =
-            std::log(error_L2[75] / prev_error[75]) /
-            std::log(cell_side_length / prev_h);
-
-            const double rate_100 =
-            std::log(error_L2[100] / prev_error[100]) /
-            std::log(cell_side_length / prev_h);
-
-          convergence_table.add_value("Rate_25", rate_25);
-          convergence_table.add_value("Rate_50", rate_50);
-          convergence_table.add_value("Rate_75", rate_75);
-          convergence_table.add_value("Rate_100", rate_100);
+          convergence_table.add_value("Rate", rate);
         }
         else
         {
-          convergence_table.add_value("Rate_25", 0.0);
-          convergence_table.add_value("Rate_50", 0.0);
-          convergence_table.add_value("Rate_75", 0.0);
-          convergence_table.add_value("Rate_100", 0.0);
+          convergence_table.add_value("Rate", 0.0);
         }
 
         prev_error = error_L2;
         prev_h = cell_side_length;
+
         std::cout << std::endl;
         convergence_table.write_text(std::cout);
         std::cout << std::endl;
