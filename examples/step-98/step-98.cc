@@ -192,7 +192,7 @@ namespace Step98
 
     const unsigned int fe_degree;
     
-    AnalyticalSolution<dim> analytical_solution;
+    
     RightHandSide<dim>      rhs_function;
     BoundaryValues<dim>   boundary_condition;
     InitialCondition<dim> initial_condition;
@@ -517,7 +517,7 @@ namespace Step98
           for (const unsigned int q :
                inside_fe_values->quadrature_point_indices())
             {
-              const Point<dim> &point = inside_fe_values->quadrature_point(q);
+              // const Point<dim> &point = inside_fe_values->quadrature_point(q);
               for (const unsigned int i : inside_fe_values->dof_indices())
                 {
                   for (const unsigned int j : inside_fe_values->dof_indices())
@@ -561,8 +561,8 @@ namespace Step98
             for (const unsigned int q :
                  surface_fe_values->quadrature_point_indices())
               {
-                const Point<dim> &point =
-                  surface_fe_values->quadrature_point(q);
+                // const Point<dim> &point =
+                //   surface_fe_values->quadrature_point(q);
                 const Tensor<1, dim> &normal =
                   surface_fe_values->normal_vector(q);
                 for (const unsigned int i : surface_fe_values->dof_indices())
@@ -848,6 +848,7 @@ namespace Step98
     // We then iterate iterate over the cells that have LocationToLevelSetValue
     // value inside or intersected again. For each quadrature point, we compute
     // the pointwise error and use this to compute the integral.
+    AnalyticalSolution<dim> analytical_solution;
     analytical_solution.set_time(time);
     double                  error_L2_squared = 0;
 
@@ -893,12 +894,14 @@ namespace Step98
     const unsigned int n_refinements = 3;
 
     make_grid();
-    static double prev_error = 0.0;
+    static std::vector<double> prev_error;
     static double prev_h = 0.0;
     for (unsigned int cycle = 0; cycle <= n_refinements; cycle++)
       {
         std::cout << "Refinement cycle " << cycle << std::endl;
         triangulation.refine_global(1);
+        time = 0.0;
+        timestep_number = 0;
         setup_discrete_level_set();
         std::cout << "Classifying cells" << std::endl;
         mesh_classifier.reclassify();
@@ -908,36 +911,63 @@ namespace Step98
         VectorTools::interpolate(dof_handler,
                                initial_condition,
                                old_solution);
-        solve();
-        if (cycle == 1)
-          output_results();
-        const double error_L2 = compute_L2_error();
+
+        std::vector<double> error_L2;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
+        error_L2.push_back(0);
+        
+        while(time<final_time)
+        {
+          time += time_step;
+          timestep_number += 1;
 
+          solve();
+          error_L2.push_back(compute_L2_error());
+          std::cout<<time<<"    "<<timestep_number<<std::endl;
+
+          old_solution = solution;
+
+        }
         convergence_table.add_value("Cycle", cycle);
         convergence_table.add_value("Mesh size", cell_side_length);
-        convergence_table.add_value("L2-Error", error_L2);
+        convergence_table.add_value("L2-Error-25", error_L2[25]);
+        convergence_table.add_value("L2-Error-50", error_L2[50]);
+        convergence_table.add_value("L2-Error-75", error_L2[75]);
+        convergence_table.add_value("L2-Error-100", error_L2[100]);
         if (cycle > 0)
         {
-          const double rate =
-            std::log(error_L2 / prev_error) /
+          const double rate_25 =
+            std::log(error_L2[25] / prev_error[25]) /
             std::log(cell_side_length / prev_h);
 
-          convergence_table.add_value("Rate", rate);
+            const double rate_50 =
+            std::log(error_L2[50] / prev_error[50]) /
+            std::log(cell_side_length / prev_h);
+
+            const double rate_75 =
+            std::log(error_L2[75] / prev_error[75]) /
+            std::log(cell_side_length / prev_h);
+
+            const double rate_100 =
+            std::log(error_L2[100] / prev_error[100]) /
+            std::log(cell_side_length / prev_h);
+
+          convergence_table.add_value("Rate_25", rate_25);
+          convergence_table.add_value("Rate_50", rate_50);
+          convergence_table.add_value("Rate_75", rate_75);
+          convergence_table.add_value("Rate_100", rate_100);
         }
         else
         {
-          convergence_table.add_value("Rate", 0.0);
+          convergence_table.add_value("Rate_25", 0.0);
+          convergence_table.add_value("Rate_50", 0.0);
+          convergence_table.add_value("Rate_75", 0.0);
+          convergence_table.add_value("Rate_100", 0.0);
         }
 
         prev_error = error_L2;
         prev_h = cell_side_length;
-
-        convergence_table.evaluate_convergence_rates(
-          "L2-Error", ConvergenceTable::reduction_rate_log2);
-        convergence_table.set_scientific("L2-Error", true);
-
         std::cout << std::endl;
         convergence_table.write_text(std::cout);
         std::cout << std::endl;
@@ -956,6 +986,6 @@ int main()
 {
   const int dim = 2;
 
-  Step98::HeatSolver<dim> laplace_solver;
-  laplace_solver.run();
+  Step98::HeatSolver<dim> heat_solver;
+  heat_solver.run();
 }
