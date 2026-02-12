@@ -92,7 +92,7 @@ namespace Step98
     (void)component;
     const double t = this->get_time();
     return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
-    // return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
+    //return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
   }
   
   // ==================================================================
@@ -107,15 +107,18 @@ namespace Step98
   };
  
   template <int dim>
-  double RightHandSide<dim>::value(const Point<dim>  &point,
+  double RightHandSide<dim>::value(const Point<dim>  &p,
                                         const unsigned int component) const
   {
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    const double g = 1.0 - 2.0 / dim * (point.norm_square() - 1.0);
-    return std::exp(-t) * (4.0 - g);
-    // return -std::exp(t) * (std::pow(point[0],9) * std::pow(point[1],8) +72 * std::pow(point[0],7) * std::pow(point[1],8) + 56 * std::pow(point[0],9) * std::pow(point[1],6));
+    return - (1. - 2. / dim * (p.norm_square() - 1.))* std::exp(-t) + 8.0/dim* std::exp(-t);
+    //const double g = 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
+    //return std::exp(-t) * (4.0 - g);
+    //return -std::pow(p[0], 7.0) * std::pow(p[1], 6.0) * std::exp(-t) *
+    //                 (std::pow(p[0], 2.0) * std::pow(p[1], 2.0) +
+    //                  72 * std::pow(p[1], 2.0) + 56 * std::pow(p[0], 2.0));
   }
 
   // ==================================================================
@@ -130,14 +133,14 @@ namespace Step98
   };
 
   template <int dim>
-  double BoundaryValues<dim>::value(const Point<dim> &p,
+  double BoundaryValues<dim>::value(const Point<dim> &point,
                                     const unsigned int component) const
   {
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    return 1.0 * std::exp(-t);
-    // return std::pow(p[0],9) * std::pow(p[1],8) * std::exp(-t);
+    return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
+    //return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
   }
 
 
@@ -159,7 +162,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     return 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
-    // return std::pow(p[0],9) * std::pow(p[1],8);
+    //return std::pow(p[0],9) * std::pow(p[1],8);
   }
 
   template <int dim>
@@ -777,7 +780,7 @@ namespace Step98
     std::cout << "Solving system" << std::endl;
 
     const unsigned int max_iterations = solution.size();
-    ReductionControl      solver_control(max_iterations,1e-20,1e-8);
+    ReductionControl      solver_control(max_iterations,1e-20,1e-10);
     SolverCG<>         solver(solver_control);
     solver.solve(system_matrix, solution, rhs, PreconditionIdentity());
   }
@@ -798,6 +801,18 @@ namespace Step98
     DataOut<dim> data_out;
     data_out.add_data_vector(dof_handler, solution, "solution");
     data_out.add_data_vector(level_set_dof_handler, level_set, "level_set");
+
+    Vector<double> analytical_solution;
+    analytical_solution.reinit(solution);
+
+    AnalyticalSolution<dim>(analytical_solution_fu);
+    analytical_solution_fu.set_time(time);
+
+    VectorTools::interpolate(dof_handler,
+                             analytical_solution_fu,
+                             analytical_solution);
+
+    data_out.add_data_vector(dof_handler, analytical_solution, "analytical");
 
     data_out.set_cell_selection(
       [this](const typename Triangulation<dim>::cell_iterator &cell) {
@@ -917,8 +932,10 @@ namespace Step98
         double error_L2;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
-        time_step=(0.1)*std::pow(cell_side_length,1);
-        // time_step=(0.005);
+        time_step=(0.01)*std::pow(cell_side_length,1);
+        //time_step=(0.05);
+
+        solution = old_solution;
         
         
         while(time<final_time-1e-6)
@@ -933,8 +950,12 @@ namespace Step98
 
           old_solution = solution;
 
+        //output_results();
+        //break;
         }
+
         output_results();
+
         convergence_table.add_value("Cycle", cycle);
         convergence_table.add_value("Mesh size", cell_side_length);
         convergence_table.add_value("Time Step", time_step);
