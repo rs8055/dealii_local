@@ -249,7 +249,7 @@ namespace Step98
     , time_step(0.005)     
     , final_time(.25)     
     , timestep_number(0)
-    , theta(1.0)
+    , theta(0.0)
   {}
 
 
@@ -932,7 +932,7 @@ namespace Step98
         double error_L2;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
-        time_step=(0.01)*std::pow(cell_side_length,1);
+        time_step=(0.1)*std::pow(cell_side_length,2) / 2 / dim;
         //time_step=(0.05);
 
         solution = old_solution;
