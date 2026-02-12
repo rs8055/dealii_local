@@ -932,8 +932,9 @@ namespace Step98
         double error_L2;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
-        time_step=(0.1)*std::pow(cell_side_length,2) / 2 / dim;
-        //time_step=(0.05);
+        // time_step=(0.1)*std::pow(cell_side_length,2) / 2 / dim;
+        // time_step = (0.1)*cell_side_length;
+        time_step=(0.005);
 
         solution = old_solution;
         
@@ -1031,7 +1032,7 @@ namespace Step98
 // @sect3{The main() function}
 int main()
 {
-  const int dim = 1;
+  const int dim = 2;
 
   Step98::HeatSolver<dim> heat_solver;
   heat_solver.run();
