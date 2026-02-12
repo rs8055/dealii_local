@@ -113,7 +113,7 @@ namespace Step98
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    return - (1. - 2. / dim * (p.norm_square() - 1.))* std::exp(-t) + 8.0/dim* std::exp(-t);
+    return - (1. - 2. / dim * (p.norm_square() - 1.))* std::exp(-t) + 4* std::exp(-t);
     //const double g = 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
     //return std::exp(-t) * (4.0 - g);
     //return -std::pow(p[0], 7.0) * std::pow(p[1], 6.0) * std::exp(-t) *
@@ -249,7 +249,7 @@ namespace Step98
     , time_step(0.005)     
     , final_time(.25)     
     , timestep_number(0)
-    , theta(0.0)
+    , theta(1.0)
   {}
 
 
@@ -905,7 +905,7 @@ namespace Step98
   void HeatSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
-    const unsigned int n_refinements = 2;
+    const unsigned int n_refinements = 3;
 
     make_grid();
     // std::vector<double> prev_error;
@@ -1031,7 +1031,7 @@ namespace Step98
 // @sect3{The main() function}
 int main()
 {
-  const int dim = 2;
+  const int dim = 1;
 
   Step98::HeatSolver<dim> heat_solver;
   heat_solver.run();
