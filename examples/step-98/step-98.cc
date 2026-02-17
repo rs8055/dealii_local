@@ -324,19 +324,6 @@ namespace Step98
     dof_handler.distribute_dofs(fe_collection);
   }
 
-
-
-  // @sect3{Sparsity Pattern}
-  // The added ghost penalty results in a sparsity pattern similar to a DG
-  // method with a symmetric-interior-penalty term. Thus, we can use the
-  // make_flux_sparsity_pattern() function to create it. However, since the
-  // ghost-penalty terms only act on the faces in $\mathcal{F}_h$, we can pass
-  // in a lambda function that tells make_flux_sparsity_pattern() over which
-  // faces the flux-terms appear. This gives us a sparsity pattern with minimal
-  // number of entries. When passing a lambda function,
-  // make_flux_sparsity_pattern requires us to also pass cell and face coupling
-  // tables to it. If the problem was vector-valued, these tables would allow us
-  // to couple only some of the vector components. This is discussed in step-46.
   template <int dim>
   void HeatSolver<dim>::initialize_matrices()
   {
@@ -396,12 +383,12 @@ namespace Step98
       mesh_classifier.location_to_level_set(cell->neighbor(face_index));
 
     if (cell_location == NonMatching::LocationToLevelSet::intersected &&
-        neighbor_location != NonMatching::LocationToLevelSet::outside)
+        neighbor_location == NonMatching::LocationToLevelSet::intersected)
       return true;
 
-    if (neighbor_location == NonMatching::LocationToLevelSet::intersected &&
-        cell_location != NonMatching::LocationToLevelSet::outside)
-      return true;
+    // if (neighbor_location == NonMatching::LocationToLevelSet::intersected &&
+    //     cell_location != NonMatching::LocationToLevelSet::outside)
+    //   return true;
 
     return false;
   }
@@ -436,29 +423,6 @@ namespace Step98
                                                  update_JxW_values |
                                                  update_normal_vectors);
 
-
-    // As we iterate over the cells in the mesh, we would in principle have to
-    // do the following on each cell, $T$,
-    //
-    // 1. Construct one quadrature rule to integrate over the intersection with
-    // the domain, $T \cap \Omega$, and one quadrature rule to integrate over
-    // the intersection with the boundary, $T \cap \Gamma$.
-    // 2. Create FEValues-like objects with the new quadratures.
-    // 3. Assemble the local matrix using the created FEValues-objects.
-    //
-    // To make the assembly easier, we use the class NonMatching::FEValues,
-    // which does the above steps 1 and 2 for us. The algorithm @cite saye_2015
-    // that is used to generate the quadrature rules on the intersected cells
-    // uses a 1-dimensional quadrature rule as base. Thus, we pass a 1d
-    // Gauss--Legendre quadrature to the constructor of NonMatching::FEValues.
-    // On the non-intersected cells, a tensor product of this 1d-quadrature will
-    // be used.
-    //
-    // As stated in the introduction, each cell has 3 different regions: inside,
-    // surface, and outside, where the level set function in each region is
-    // negative, zero, and positive. We need an UpdateFlags variable for each
-    // such region. These are stored on an object of type
-    // NonMatching::RegionUpdateFlags, which we pass to NonMatching::FEValues.
     const QGauss<1> quadrature_1D(fe_degree + 1);
 
     NonMatching::RegionUpdateFlags region_update_flags;
@@ -487,32 +451,8 @@ namespace Step98
 
         const double cell_side_length = cell->minimum_vertex_distance();
 
-        // First, we call the reinit function of our NonMatching::FEValues
-        // object. In the background, NonMatching::FEValues uses the
-        // MeshClassifier passed to its constructor to check if the incoming
-        // cell is intersected. If that is the case, NonMatching::FEValues calls
-        // the NonMatching::QuadratureGenerator in the background to create the
-        // immersed quadrature rules.
         non_matching_fe_values.reinit(cell);
 
-        // After calling reinit, we can retrieve a FEValues object with
-        // quadrature points that corresponds to integrating over the inside
-        // region of the cell. This is the object we use to do the local
-        // assembly. This is similar to how hp::FEValues builds FEValues
-        // objects. However, one difference here is that the FEValues
-        // object is returned as an optional. This is a type that wraps an
-        // object that may or may not be present. This requires us to add an
-        // if-statement to check if the returned optional contains a value,
-        // before we use it. This might seem odd at first. Why does the function
-        // not just return a reference to a const FEValues<dim>? The reason is
-        // that in an immersed method, we have essentially no control of how the
-        // cuts occur. Even if the cell is formally intersected: $T \cap \Omega
-        // \neq \emptyset$, it might be that the cut is only of floating point
-        // size $|T \cap \Omega| \sim \epsilon$. When this is the case, we can
-        // not expect that the algorithm that generates the quadrature rule
-        // produces anything useful. It can happen that the algorithm produces 0
-        // quadrature points. When this happens, the returned optional will not
-        // contain a value, even if the cell is formally intersected.
         const std::optional<FEValues<dim>> &inside_fe_values =
           non_matching_fe_values.get_inside_fe_values();
 
@@ -541,21 +481,6 @@ namespace Step98
                 }
             }
 
-        // In the same way, we can use NonMatching::FEValues to retrieve an
-        // FEFaceValues-like object to integrate over $T \cap \Gamma$. The only
-        // thing that is new here is the type of the object. The transformation
-        // from quadrature weights to JxW-values is different for surfaces, so
-        // we need a new class: NonMatching::FEImmersedSurfaceValues. In
-        // addition to the ordinary functions shape_value(..), shape_grad(..),
-        // etc., one can use its normal_vector(..)-function to get an outward
-        // normal to the immersed surface, $\Gamma$. In terms of the level set
-        // function, this normal reads
-        // @f{equation*}{
-        //   n = \frac{\nabla \psi}{\| \nabla \psi \|}.
-        // @f}
-        // An additional benefit of std::optional is that we do not need any
-        // other check for whether we are on intersected cells: In case we are
-        // on an inside cell, we get an empty object here.
         const std::optional<NonMatching::FEImmersedSurfaceValues<dim>>
           &surface_fe_values = non_matching_fe_values.get_surface_fe_values();
 
@@ -597,14 +522,7 @@ namespace Step98
 
         mass_matrix.add(local_dof_indices, local_mass);  
         stiffness_matrix.add(local_dof_indices, local_stiffness);
-        // rhs.add(local_dof_indices, local_rhs);
 
-        // The assembly of the ghost penalty term is straight forward. As we
-        // iterate over the local faces, we first check if the current face
-        // belongs to the set $\mathcal{F}_h$. The actual assembly is simple
-        // using FEInterfaceValues. Assembling in this we will traverse each
-        // internal face in the mesh twice, so in order to get the penalty
-        // constant we expect, we multiply the penalty term with a factor 1/2.
         for (const unsigned int f : cell->face_indices())
           if (face_has_ghost_penalty(cell, f))
             {
@@ -634,13 +552,13 @@ namespace Step98
                     for (unsigned int j = 0; j < n_interface_dofs; ++j)
                       {
                         local_mass_stabilization(i, j) +=
-                          .5 * ghost_parameter_1 * std::pow(cell_side_length,3) * normal *
+                          .5 * ghost_parameter_1 * (0.33) * std::pow(cell_side_length,3) * normal *
                           fe_interface_values.jump_in_shape_gradients(i, q) *
                           normal *
                           fe_interface_values.jump_in_shape_gradients(j, q) *
                           fe_interface_values.JxW(q);                        
                         local_stabilization(i, j) +=
-                          .5 * ghost_parameter_2 * cell_side_length * normal *
+                          .5 * ghost_parameter_2 * (0.33) *  cell_side_length * normal *
                           fe_interface_values.jump_in_shape_gradients(i, q) *
                           normal *
                           fe_interface_values.jump_in_shape_gradients(j, q) *
@@ -826,21 +744,6 @@ namespace Step98
     data_out.write_vtu(output);
   }
 
-
-
-  // @sect3{L2-Error}
-  // To test that the implementation works as expected, we want to compute the
-  // error in the solution in the $L^2$-norm. The analytical solution to the
-  // Poisson problem stated in the introduction reads
-  // @f{align*}{
-  //  u(x) = 1 - \frac{2}{\text{dim}}(\| x \|^2 - 1) , \qquad x \in
-  //  \overline{\Omega}.
-  // @f}
-
-  // Of course, the analytical solution, and thus also the error, is only
-  // defined in $\overline{\Omega}$. Thus, to compute the $L^2$-error we must
-  // proceed in the same way as when we assembled the linear system. We first
-  // create an NonMatching::FEValues object.
   template <int dim>
   double HeatSolver<dim>::compute_L2_error() const
   {
@@ -905,7 +808,7 @@ namespace Step98
   void HeatSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
-    const unsigned int n_refinements = 3;
+    const unsigned int n_refinements = 4;
 
     make_grid();
     // std::vector<double> prev_error;
@@ -917,6 +820,9 @@ namespace Step98
         triangulation.refine_global(1);
         time = 0.0;
         timestep_number = 0;
+        const double cell_side_length =
+          triangulation.begin_active()->minimum_vertex_distance();
+        time_step = (0.05)*cell_side_length;
         setup_discrete_level_set();
         std::cout << "Classifying cells" << std::endl;
         mesh_classifier.reclassify();
@@ -927,14 +833,7 @@ namespace Step98
                                initial_condition,
                                old_solution);
 
-        // std::vector<double> error_L2;
-        // error_L2.push_back(0);
-        double error_L2;
-        const double cell_side_length =
-          triangulation.begin_active()->minimum_vertex_distance();
-        // time_step=(0.1)*std::pow(cell_side_length,2) / 2 / dim;
-        // time_step = (0.1)*cell_side_length;
-        time_step=(0.005);
+        double error_L2;       
 
         solution = old_solution;
         
@@ -962,43 +861,6 @@ namespace Step98
         convergence_table.add_value("Time Step", time_step);
         convergence_table.add_value("Time Step Number", timestep_number);
         convergence_table.add_value("L2-Error", error_L2);
-        // convergence_table.add_value("L2-Error-25", error_L2[25]);
-        // convergence_table.add_value("L2-Error-50", error_L2[50]);
-        // convergence_table.add_value("L2-Error-75", error_L2[75]);
-        // convergence_table.add_value("L2-Error-100", error_L2[100]);
-        // if (cycle > 0)
-        // {
-        //   const double rate_25 =
-        //     std::log(error_L2[25] / prev_error[25]) /
-        //     std::log(cell_side_length / prev_h);
-
-        //     const double rate_50 =
-        //     std::log(error_L2[50] / prev_error[50]) /
-        //     std::log(cell_side_length / prev_h);
-
-        //     const double rate_75 =
-        //     std::log(error_L2[75] / prev_error[75]) /
-        //     std::log(cell_side_length / prev_h);
-
-        //     const double rate_100 =
-        //     std::log(error_L2[100] / prev_error[100]) /
-        //     std::log(cell_side_length / prev_h);
-
-        //   convergence_table.add_value("Rate_25", rate_25);
-        //   convergence_table.add_value("Rate_50", rate_50);
-        //   convergence_table.add_value("Rate_75", rate_75);
-        //   convergence_table.add_value("Rate_100", rate_100);
-        // }
-        // else
-        // {
-        //   convergence_table.add_value("Rate_25", 0.0);
-        //   convergence_table.add_value("Rate_50", 0.0);
-        //   convergence_table.add_value("Rate_75", 0.0);
-        //   convergence_table.add_value("Rate_100", 0.0);
-        // }
-
-        // prev_error = error_L2;
-        // prev_h = cell_side_length;
 
         if (cycle > 0)
         {
