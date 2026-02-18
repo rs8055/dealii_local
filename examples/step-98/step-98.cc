@@ -383,12 +383,12 @@ namespace Step98
       mesh_classifier.location_to_level_set(cell->neighbor(face_index));
 
     if (cell_location == NonMatching::LocationToLevelSet::intersected &&
-        neighbor_location == NonMatching::LocationToLevelSet::intersected)
+        neighbor_location != NonMatching::LocationToLevelSet::outside)
       return true;
 
-    // if (neighbor_location == NonMatching::LocationToLevelSet::intersected &&
-    //     cell_location != NonMatching::LocationToLevelSet::outside)
-    //   return true;
+    if (neighbor_location == NonMatching::LocationToLevelSet::intersected &&
+        cell_location != NonMatching::LocationToLevelSet::outside)
+      return true;
 
     return false;
   }
@@ -723,7 +723,7 @@ namespace Step98
     Vector<double> analytical_solution;
     analytical_solution.reinit(solution);
 
-    AnalyticalSolution<dim>(analytical_solution_fu);
+    AnalyticalSolution<dim> analytical_solution_fu;
     analytical_solution_fu.set_time(time);
 
     VectorTools::interpolate(dof_handler,
