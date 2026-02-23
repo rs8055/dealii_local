@@ -70,7 +70,7 @@
 // @sect3{The HeatSolver class Template}
 // We then define the main class that solves the Heat problem.
 
-namespace Step98
+namespace Step99
 {
   using namespace dealii;
   // ==================================================================
@@ -184,7 +184,7 @@ namespace Step98
 
     void assemble_system();
 
-    void solve(const double evaluating_time, const Vector<double> previous_solution);
+    void solve(const double evaluating_time, const Vector<double> previous_solution, Vector<double> &solution_out);
 
     void output_results() const;
 
@@ -582,13 +582,13 @@ namespace Step98
       }
 
     system_matrix.copy_from(mass_matrix);
-    system_matrix.add(theta * time_step, stiffness_matrix);
+    // system_matrix.add(theta * time_step, stiffness_matrix);
   }
 
 
   // @sect3{Solving the System}
   template <int dim>
-  void HeatSolver<dim>::solve(const double evaluating_time, const Vector<double> previous_solution)
+  void HeatSolver<dim>::solve(const double evaluating_time, const Vector<double> previous_solution, Vector<double> &solution_out)
   {
 
     rhs = 0;
@@ -597,7 +597,7 @@ namespace Step98
       {
         Vector<double> tmp(solution.size());
         stiffness_matrix.vmult(tmp, previous_solution);
-        rhs.add(1.0, tmp);
+        rhs.add(-1.0, tmp);
       }
 
     const unsigned int n_dofs_per_cell = fe_collection[0].dofs_per_cell;
@@ -650,7 +650,7 @@ namespace Step98
 
                 for (const unsigned int i : inside_fe_values->dof_indices())
                   {
-                    local_rhs(i) += time_step * f_value *
+                    local_rhs(i) += f_value *
                                     inside_fe_values->shape_value(i, q) *
                                     inside_fe_values->JxW(q);
                   }
@@ -680,7 +680,7 @@ namespace Step98
                 for (const unsigned int i : surface_fe_values->dof_indices())
                   {
                     local_rhs(i) +=
-                      time_step * g_value *
+                      g_value *
                       (nitsche_parameter / cell_side_length *
                          surface_fe_values->shape_value(i, q) -
                        normal * surface_fe_values->shape_grad(i, q)) *
@@ -698,7 +698,7 @@ namespace Step98
     const unsigned int max_iterations = solution.size();
     ReductionControl      solver_control(max_iterations,1e-20,1e-10);
     SolverCG<>         solver(solver_control);
-    solver.solve(system_matrix, solution, rhs, PreconditionIdentity());
+    solver.solve(system_matrix, solution_out, rhs, PreconditionIdentity());
   }
 
 
@@ -738,7 +738,7 @@ namespace Step98
       });
 
     data_out.build_patches();
-    std::ofstream output("step-98.vtu");
+    std::ofstream output("step-99.vtu");
     data_out.write_vtu(output);
   }
 
@@ -835,22 +835,42 @@ namespace Step98
         
         while(time<final_time-1e-6)
         {
+          Vector<double> sol_k1(dof_handler.n_dofs());
+          Vector<double> sol_k2(dof_handler.n_dofs());
+          Vector<double> sol_k3(dof_handler.n_dofs());
+          Vector<double> sol_k4(dof_handler.n_dofs());
+          Vector<double> tmp(dof_handler.n_dofs());
+
+          // k1
+          solve(time, old_solution, sol_k1);
+
+          // k2
+          tmp = old_solution;
+          tmp.add(time_step / 2.0, sol_k1);
+          solve(time + time_step / 2.0, tmp, sol_k2);
+
+          // k3
+          tmp = old_solution;
+          tmp.add(time_step / 2.0, sol_k2);
+          solve(time + time_step / 2.0, tmp, sol_k3);
+
+          // k4
+          tmp = old_solution;
+          tmp.add(time_step, sol_k3);
+          solve(time + time_step, tmp, sol_k4);
+
+          // Final combination
+          solution = old_solution;
+
+          solution.add(time_step / 6.0, sol_k1);
+          solution.add(time_step / 3.0, sol_k2);   // 2/6 = 1/3
+          solution.add(time_step / 3.0, sol_k3);
+          solution.add(time_step / 6.0, sol_k4);
+          error_L2 = compute_L2_error();
           time += time_step;
           timestep_number += 1;
-          const double evaluating_time = theta * time + (1.0 - theta) * (time-time_step);
-          Vector<double> translated_solution(dof_handler.n_dofs());
-          translated_solution = 0;
-          translated_solution.add(-(1.0 - theta) * time_step , old_solution);
-
-          solve(evaluating_time, translated_solution);
-          solution+=old_solution;
-          error_L2 = compute_L2_error();
           std::cout<<time<<"    "<<timestep_number<<std::endl;
-
           old_solution = solution;
-
-        //output_results();
-        //break;
         }
 
         output_results();
@@ -886,7 +906,7 @@ namespace Step98
       }
   }
 
-} // namespace Step98
+} // namespace Step99
 
 
 
@@ -895,6 +915,6 @@ int main()
 {
   const int dim = 2;
 
-  Step98::HeatSolver<dim> heat_solver;
+  Step99::HeatSolver<dim> heat_solver;
   heat_solver.run();
 }
