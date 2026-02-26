@@ -91,8 +91,14 @@ namespace Step100
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
-    //return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
+    // return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
+
+    // return std::sin(point[0]) * std::sin(point[1]) * std::cos(std::sqrt(2.0) * t);
+
+    const double alpha_0 = 2.4048255577; // first zero of J0
+    // AnalyticalSolution
+    return std::cyl_bessel_j(0, alpha_0 * point.norm()) * std::cos(alpha_0 * t);
+
   }
   
   // ==================================================================
@@ -113,12 +119,8 @@ namespace Step100
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    return (1. - 2. / dim * (p.norm_square() - 1.))* std::exp(-t) + 4* std::exp(-t);
-    //const double g = 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
-    //return std::exp(-t) * (4.0 - g);
-    //return -std::pow(p[0], 7.0) * std::pow(p[1], 6.0) * std::exp(-t) *
-    //                 (std::pow(p[0], 2.0) * std::pow(p[1], 2.0) +
-    //                  72 * std::pow(p[1], 2.0) + 56 * std::pow(p[0], 2.0));
+    // return (1. - 2. / dim * (p.norm_square() - 1.))* std::exp(-t) + 4* std::exp(-t);
+    return 0.0;
   }
 
   // ==================================================================
@@ -139,8 +141,12 @@ namespace Step100
     AssertIndexRange(component, this->n_components);
     (void)component;
     const double t = this->get_time();
-    return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
-    //return std::pow(point[0],9) * std::pow(point[1],8) * std::exp(-t);
+    // return (1. - 2. / dim * (point.norm_square() - 1.))* std::exp(-t);
+
+    // return std::sin(point[0]) * std::sin(point[1]) * std::cos(std::sqrt(2.0) * t);
+
+
+    return 0.0;
   }
 
 
@@ -161,8 +167,11 @@ namespace Step100
   {
     AssertIndexRange(component, this->n_components);
     (void)component;
-    return 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
-    //return std::pow(p[0],9) * std::pow(p[1],8);
+    // return 1.0 - 2.0 / dim * (p.norm_square() - 1.0);
+    // return std::sin(p[0]) * std::sin(p[1]);
+
+    const double alpha_0 = 2.4048255577; // first zero of J0
+    return std::cyl_bessel_j(0, alpha_0 * p.norm());
   }
 
   // ==================================================================
@@ -182,8 +191,8 @@ namespace Step100
   {
     AssertIndexRange(component, this->n_components);
     (void)component;
-    return - (1.0 - 2.0 / dim * (p.norm_square() - 1.0));
-    //return std::pow(p[0],9) * std::pow(p[1],8);
+    // return - (1.0 - 2.0 / dim * (p.norm_square() - 1.0));
+    return 0.0;
   }
 
   template <int dim>
@@ -271,7 +280,7 @@ namespace Step100
     , mesh_classifier(level_set_dof_handler, level_set)
     , time(0.0)           
     , time_step(0.005)     
-    , final_time(.25)     
+    , final_time(1.0)     
     , timestep_number(0)
     , theta(0.0)
   {}
@@ -832,7 +841,7 @@ namespace Step100
   void WaveSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
-    const unsigned int n_refinements = 4;
+    const unsigned int n_refinements = 5;
 
     make_grid();
     // std::vector<double> prev_error;
@@ -846,7 +855,7 @@ namespace Step100
         timestep_number = 0;
         const double cell_side_length =
           triangulation.begin_active()->minimum_vertex_distance();
-        time_step = (0.01)*std::pow(cell_side_length,1);
+        time_step = (0.1)*std::pow(cell_side_length,1);
         setup_discrete_level_set();
         std::cout << "Classifying cells" << std::endl;
         mesh_classifier.reclassify();
@@ -862,6 +871,9 @@ namespace Step100
                                old_derivative_solution);                      
 
         double error_L2;               
+        const double alpha_0 = 2.4048255577; // first zero of J0
+        const double pi = std::acos(-1.0);  
+        final_time = 2.0 * pi / alpha_0;
         
         while(time<final_time-1e-6)
         {
