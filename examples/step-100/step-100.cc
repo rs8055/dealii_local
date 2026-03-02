@@ -841,7 +841,7 @@ namespace Step100
   void WaveSolver<dim>::run()
   {
     ConvergenceTable   convergence_table;
-    const unsigned int n_refinements = 5;
+    const unsigned int n_refinements = 3;
 
     make_grid();
     // std::vector<double> prev_error;
